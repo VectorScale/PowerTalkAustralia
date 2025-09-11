@@ -38,6 +38,8 @@ const ProjectLevelDetailPage = () => {
   const [projectTitles, setProjectTitles] = useState([]); 
     const [selected, setSelected] = useState([]);
    const [project, setProject]= useState([]);
+   process.env.EXPO_PUBLIC_IP;
+  
    useEffect(() => {
     (async () => {
       try {

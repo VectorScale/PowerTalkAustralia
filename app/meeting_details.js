@@ -11,6 +11,8 @@ const MeetingDetails = () => {
   const [loading, setLoading] = useState(true);
     const [meetingId, setMeetingId] = useState(null);
     const [userId, setUserId] = useState(null);
+    process.env.EXPO_PUBLIC_IP;
+  
   useEffect(() => {
     (async () => {
       try {

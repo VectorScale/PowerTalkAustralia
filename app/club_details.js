@@ -18,6 +18,8 @@ const MeetingDetails = () => {
   const [loading, setLoading] = useState(true);
   const [clubId, setClubId] = useState(null);
   const [UserId, storedUserIds] = useState(null);
+  process.env.EXPO_PUBLIC_IP;
+  
 
   useEffect(() => {
     (async () => {

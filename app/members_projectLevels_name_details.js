@@ -23,6 +23,8 @@ import { router } from "expo-router";
 const ProjectDetailPage = () => {
   const navigation = useNavigation();
   const route = useRoute();
+  process.env.EXPO_PUBLIC_IP;
+  
 
   //const { projectName } = route.params;
 

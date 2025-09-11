@@ -13,6 +13,8 @@ import { useKeyboard } from "@react-native-community/hooks";
 
 const LoginForm = () => {
   const router = useRouter();
+  process.env.EXPO_PUBLIC_IP;
+  
   const {
     control,
     handleSubmit,

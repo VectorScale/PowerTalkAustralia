@@ -27,6 +27,7 @@ const BoardMemberpage = () => {
   const [memberid, setid] = useState("");
   const [clubid, setids] = useState("");
   const [userid, setUserId] = useState(null);
+  process.env.EXPO_PUBLIC_IP
   useEffect(() => {
     (async () => {
       try {

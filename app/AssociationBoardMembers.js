@@ -29,6 +29,7 @@ const ClubMembersPage = () => {
   const [clubBoardData, setClubBoardData] = useState([]);
     const [userId, setUserId] = useState(null);
     const [names, setnames] = useState([]);
+  const URL = process.env.EXPO_PUBLIC_IP;
   
   useEffect(() => {
     (async () => {
@@ -60,7 +61,7 @@ const ClubMembersPage = () => {
   }, []);
   useEffect(() => {
     axios
-      .get(`http://10.88.15.226:8081/clubs`)
+      .get(`${process.env.EXPO_PUBLIC_IP}:8081/clubs`)
       .then((res) => setClubs(res.data))
       .catch((err) => {
         console.error("Error fetching clubs:", err);

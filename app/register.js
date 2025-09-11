@@ -40,6 +40,8 @@ const RegisterForm = () => {
       email: "",
     },
   });
+  process.env.EXPO_PUBLIC_IP;
+  
 
   const onSubmit = async (data) => {
     var today = new Date();

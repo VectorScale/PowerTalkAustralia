@@ -29,6 +29,8 @@ const ProfileScreen = () => {
   const [selectedMonth, setSelectedMonth] = useState("May");
   const [selectedYear, setSelectedYear] = useState("2025");
   const [selectedClub, setSelectedClub] = useState("All Clubs");
+  process.env.EXPO_PUBLIC_IP;
+  
   useEffect(() => {
     (async () => {
       try {

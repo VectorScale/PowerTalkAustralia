@@ -29,6 +29,8 @@ const ClubMembersPage = () => {
   const [clubBoardData, setClubBoardData] = useState([]);
     const [userId, setUserId] = useState(null);
     const [names, setnames] = useState([]);
+    process.env.EXPO_PUBLIC_IP;
+  
   
   useEffect(() => {
     (async () => {

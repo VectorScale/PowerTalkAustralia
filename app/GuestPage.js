@@ -17,6 +17,8 @@ export default function GuestPage() {
   const [ClubList, SetClubList] = useState([]);
   const [userId, setUserId] = useState({});
   const [count, setCount] = useState(0);
+  process.env.EXPO_PUBLIC_IP;
+  
   useEffect(() => {
     const fetchUserId = async () => {
       try {

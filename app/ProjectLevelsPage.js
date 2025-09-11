@@ -10,6 +10,8 @@ import axios from "axios";
 const MembersProjectPage1 = () => {
    const [userId, setUserId] = useState(null);
     const [clubId, setclubid] = useState(null);
+    process.env.EXPO_PUBLIC_IP;
+  
   useEffect(() => {
     (async () => {
       try {
