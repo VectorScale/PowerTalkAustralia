@@ -54,7 +54,7 @@ const ProfileScreen = () => {
       try {
         // Step 1: Get club list from user info
         const { data } = await axios.get(
-          `${process.env.EXPO_PUBLIC_IP}:8081/user/${userId}`
+          `${process.env.EXPO_PUBLIC_IP}/user/${userId}`
         );
         const clubList = data.Club_id || [];
 
@@ -64,11 +64,11 @@ const ProfileScreen = () => {
         const clubMeetingDetails = await Promise.all(
           clubList.map(async (item) => {
             const res = await axios.get(
-              `${process.env.EXPO_PUBLIC_IP}:8081/club/${item.Club_id}`
+              `${process.env.EXPO_PUBLIC_IP}/club/${item.Club_id}`
             );
             const clubNames = res.data.Club_name[0].Club_name;
             const resMeet = await axios.get(
-              `${process.env.EXPO_PUBLIC_IP}:8081/meeting/${item.Club_id}`
+              `${process.env.EXPO_PUBLIC_IP}/meeting/${item.Club_id}`
             );
             const MeetNames = resMeet.data;
             return {

@@ -36,7 +36,7 @@ const ProjectDetailPage = () => {
       try {
         const projectid = await AsyncStorage.getItem("projectId");
         if (projectid) {
-          const { data } = await axios.get(`${process.env.EXPO_PUBLIC_IP}:8081/projects/${projectid}`);
+          const { data } = await axios.get(`${process.env.EXPO_PUBLIC_IP}/projects/${projectid}`);
           setProject(data);
           setName(data[0].project_number)
         }

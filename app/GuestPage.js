@@ -41,7 +41,7 @@ export default function GuestPage() {
   console.log(userId);
   useEffect(() => {
     axios
-      .get(`${process.env.EXPO_PUBLIC_IP}:8081/clubs`)
+      .get(`${process.env.EXPO_PUBLIC_IP}/clubs`)
       .then((res) => SetClubList(res.data))
       .catch((err) => {
         console.error("Error fetching clubs:", err);

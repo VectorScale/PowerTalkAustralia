@@ -15,7 +15,7 @@ const Profile = () => {
   const [userId, setUserId] = useState("");
   const [profiles, setProfiles] = useState([]);
   const [access, setAccess] = useState(false);
-
+  process.env.EXPO_PUBLIC_IP
   const local = useLocalSearchParams();
   const nav = useNavigation();
 
@@ -39,7 +39,7 @@ const Profile = () => {
       try {
         if (userId) {
           const res = await axios.get(
-            `http://${process.env.EXPO_PUBLIC_IP}:8081/clubaccess/${userId}`
+            `${process.env.EXPO_PUBLIC_IP}/clubaccess/${userId}`
           );
           if (res.status == 200) {
             setAccess(true);
@@ -56,7 +56,7 @@ const Profile = () => {
     (async () => {
       try {
         const res = await axios.get(
-          `http://${process.env.EXPO_PUBLIC_IP}:8081/profile/${local.profileID}`
+          `${process.env.EXPO_PUBLIC_IP}/profile/${local.profileID}`
         );
         setProfiles(res.data);
       } catch (error) {

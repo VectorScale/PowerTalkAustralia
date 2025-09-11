@@ -47,7 +47,7 @@ const ProjectLevelDetailPage = () => {
                 const id= await AsyncStorage.getItem("id");
 
         if(level && id){
-            const {data}= await axios.get(`${process.env.EXPO_PUBLIC_IP}:8081/projectss/${id}/${level}`);
+            const {data}= await axios.get(`${process.env.EXPO_PUBLIC_IP}/projectss/${id}/${level}`);
             setProject(data);
             console.log(project);
         }

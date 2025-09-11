@@ -53,7 +53,7 @@ const RegisterForm = () => {
 
     try {
       const memberResponse = await axios.post(
-        `${process.env.EXPO_PUBLIC_IP}:8081/users/checkMonthlyMembers`
+        `${process.env.EXPO_PUBLIC_IP}/users/checkMonthlyMembers`
       );
       console.log("Server Response:", memberResponse.data.message);
       Alert.alert("Success", "Membership successful");

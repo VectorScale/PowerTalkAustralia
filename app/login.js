@@ -40,17 +40,17 @@ const LoginForm = () => {
   const handleLogin = async (data) => {
     try {
       const login = await axios.post(
-        `${process.env.EXPO_PUBLIC_IP}:8081/users/login`,
+        `${process.env.EXPO_PUBLIC_IP}/users/login`,
         {
           website_login: data.website_login.trim(),
           password: data.password.trim(),
         }
       );
       const member = await axios.get(
-        `${process.env.EXPO_PUBLIC_IP}:8081/member/${login.data.user_id}`
+        `${process.env.EXPO_PUBLIC_IP}/member/${login.data.user_id}`
       );
       const clubAccess = await axios.get(
-        `${process.env.EXPO_PUBLIC_IP}:8081/clubAccess/${member.data.User_id}`
+        `${process.env.EXPO_PUBLIC_IP}/clubAccess/${member.data.User_id}`
       );
 
       console.log(member.data.User_id);
