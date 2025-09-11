@@ -46,7 +46,7 @@ const BoardMemberpage = () => {
       try {
         // Step 1: Get club list from user info
         const { data } = await axios.get(
-          `http://${process.env.EXPO_PUBLIC_IP}:8081/clubBoard/1`
+          `${process.env.EXPO_PUBLIC_IP}:8081/clubBoard/1`
         );
         const UseridList = data.User_id || [];
 
@@ -54,7 +54,7 @@ const BoardMemberpage = () => {
           data.map(async (item) => {
             
             const res = await axios.get(
-              `http://${process.env.EXPO_PUBLIC_IP}:8081/clubBoardMembers/${item.member_id}`
+              `${process.env.EXPO_PUBLIC_IP}:8081/clubBoardMembers/${item.member_id}`
             );
             const MemberNames =
               res.data[0].first_name + " " + res.data[0].last_name;
@@ -75,7 +75,7 @@ const BoardMemberpage = () => {
   const Search = async () => {
     try {
       const res = await axios.get(
-        `http://${process.env.EXPO_PUBLIC_IP}:8081/clubBoardMembers/${id}`
+        `${process.env.EXPO_PUBLIC_IP}:8081/clubBoardMembers/${id}`
       );
       setresults(res.data);
       console.log(res.data);
@@ -86,13 +86,13 @@ const BoardMemberpage = () => {
   const AddMember = async () => {
     try {
       const access = await axios.get(
-        `http://${process.env.EXPO_PUBLIC_IP}:8081/clubAccess/${userid}`
+        `${process.env.EXPO_PUBLIC_IP}:8081/clubAccess/${userid}`
       );
       const accesses = access.data;
 
       if (accesses) {
         const response = await axios.post(
-          `http://${process.env.EXPO_PUBLIC_IP}:8081/BoardMember`,
+          `${process.env.EXPO_PUBLIC_IP}:8081/BoardMember`,
           {
             User_id: memberid.trim(),
             Club_id: clubid.trim(),

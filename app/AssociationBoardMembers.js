@@ -48,7 +48,7 @@ const ClubMembersPage = () => {
     (async () => {
       try {
         const res = await axios.get(
-          `http://10.88.15.226:8081/members`
+          `${process.env.EXPO_PUBLIC_IP}:8081/members`
         );
 
         setDetails(res.data.user);

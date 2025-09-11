@@ -42,7 +42,7 @@ const MeetingDetails = () => {
   useEffect(() => {
     if (!userId) return;
     if (userId) {
-      axios.get(`http://${process.env.EXPO_PUBLIC_IP}:8081/meeting_details/${meetingId}`)
+      axios.get(`${process.env.EXPO_PUBLIC_IP}:8081/meeting_details/${meetingId}`)
         .then(res => {
           setMeeting(res.data);
           console.log(res.data);

@@ -33,7 +33,7 @@ const ProjectDetailPage = () => {
       try {
         const projectid = await AsyncStorage.getItem("projectId");
         if(projectid){
-            const {data}= await axios.get(`http://10.88.48.249:8081/projects/${projectid}`);
+            const {data}= await axios.get(`${process.env.EXPO_PUBLIC_IP}:8081/projects/${projectid}`);
             setProject(data);
             setName(data[0].project_number)
         }

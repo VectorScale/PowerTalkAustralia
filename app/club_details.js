@@ -37,7 +37,7 @@ const MeetingDetails = () => {
   const sendMessage = async (UserId) => {
     try {
       const response = await axios.post(
-        `http://${process.env.EXPO_PUBLIC_IP}:8081/send-message`,
+        `${process.env.EXPO_PUBLIC_IP}:8081/send-message`,
         {
           senderId: UserId,
         }
@@ -54,7 +54,7 @@ const MeetingDetails = () => {
     if (!clubId) return;
     if (clubId) {
       axios
-        .get(`http://${process.env.EXPO_PUBLIC_IP}:8081/club_details/${clubId}`)
+        .get(`${process.env.EXPO_PUBLIC_IP}:8081/club_details/${clubId}`)
         .then((res) => {
           setClub(res.data);
           setLoading(false);

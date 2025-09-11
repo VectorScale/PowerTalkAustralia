@@ -19,7 +19,7 @@ const MembersProjectPage1 = () => {
           console.log(storedUserId);
           setUserId(storedUserId);
           const access = await axios.get(
-            `http://${process.env.EXPO_PUBLIC_IP}:8081/clubBoards/${storedUserId}`
+            `${process.env.EXPO_PUBLIC_IP}:8081/clubBoards/${storedUserId}`
           );
           const accesses = access.data;
           console.log(accesses);

@@ -45,7 +45,7 @@ const ClubMembersPage = () => {
     (async () => {
       try {
         const res = await axios.get(
-          `http://${process.env.EXPO_PUBLIC_IP}:8081/members`
+          `${process.env.EXPO_PUBLIC_IP}:8081/members`
         );
 
         setDetails(res.data.user);
@@ -58,7 +58,7 @@ const ClubMembersPage = () => {
 
   useEffect(() => {
     axios
-      .get(`http://${process.env.EXPO_PUBLIC_IP}:8081/clubs`)
+      .get(`${process.env.EXPO_PUBLIC_IP}:8081/clubs`)
       .then((res) => setClubs(res.data))
       .catch((err) => {
         console.error("Error fetching clubs:", err);
@@ -69,7 +69,7 @@ const ClubMembersPage = () => {
   useEffect(() => {
     if (!selectedClubId) return;
     axios
-      .get(`http://${process.env.EXPO_PUBLIC_IP}/clubBoard/${selectedClubId}`)
+      .get(`${process.env.EXPO_PUBLIC_IP}/clubBoard/${selectedClubId}`)
       .then((res) => setids(res.data))
       .catch((err) => {
         console.error("Error fetching clubs:", err);
