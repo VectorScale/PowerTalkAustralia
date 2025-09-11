@@ -36,7 +36,6 @@ jobs:
          EXPO_PUBLIC_IP : "https://pt-vault-connection-h5efe4f5crgua5fq.australiaeast-01.azurewebsites.net"
         run: |
           npx expo export --platform web # This creates the 'dist' folder
-        env:
 
       - name: Build And Deploy
         id: builddeploy
