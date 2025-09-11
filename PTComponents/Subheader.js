@@ -3,7 +3,6 @@ import { Text, View, StyleSheet } from "react-native";
 import BackButton from "./BackButton";
 
 import React from "react";
-import Button from "./Button";
 
 const Subheader = (options) => {
   return (

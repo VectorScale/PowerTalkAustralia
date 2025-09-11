@@ -11,14 +11,13 @@ import {
   Alert,
 } from "react-native";
 import { Picker } from "@react-native-picker/picker";
-import { useNavigation } from "@react-navigation/native";
 import axios from "axios";
 import BottomNav from "./components/BottomNav";
 import PTHeader from "./components/PTHeader";
 
 const ClubMembersPage = () => {
-    const router = useRouter();
-  
+  const router = useRouter();
+
   const [memberdetails, setDetails] = useState([]);
   const [sortByName, setSortByName] = useState("A-Z");
   const [selectedClub, setSelectedClub] = useState("All Clubs");
@@ -26,8 +25,8 @@ const ClubMembersPage = () => {
   const [ids, setids] = useState([]);
   const [selectedClubId, setSelectedClubId] = useState(null);
   const [clubBoardData, setClubBoardData] = useState([]);
-    const [userId, setUserId] = useState(null);
-  
+  const [userId, setUserId] = useState("");
+
   useEffect(() => {
     (async () => {
       try {
@@ -102,94 +101,108 @@ const ClubMembersPage = () => {
   return (
     <View style={styles.container}>
       {/* Top Bar */}
-     {userId && <PTHeader button={true} text={"Profile"} link={"profile"} />}
-     {userId == null &&  ( <View style={styles.logoContainer}>
-                    <TouchableOpacity
-                      onPress={() =>
-                        router.push({
-                          pathname: `/`,
-                        })
-                      }
-                    >
-                      <Image
-                        source={{
-                          uri: "https://www.powertalkaustralia.org.au/wp-content/uploads/2023/12/Asset-74x.png",
-                        }}
-                        style={styles.logo}
-                        resizeMode="contain"
-                      />
-                    </TouchableOpacity>
-                  
-                  <TouchableOpacity
-                          style={styles.iconWrapper}
-                          onPress={() => router.push("/login")}
-                        >Login</TouchableOpacity>
-                        </View>)}
-     {userId !=null && (<ScrollView style={styles.content}>
-        {/* Header Block */}
-        <View style={styles.meetingHeaderBlock}>
-          <Text style={styles.meetingHeaderText}>Club Members</Text>
-        </View>
-
-        {/* Sorting Dropdowns */}
-        <View style={styles.sortingRow}>
-          <Picker
-            selectedValue={sortByName}
-            style={styles.picker}
-            onValueChange={(itemValue) => setSortByName(itemValue)}
-          >
-            <Picker.Item label="A-Z" value="A-Z" />
-            <Picker.Item label="Z-A" value="Z-A" />
-          </Picker>
-
-          <Picker
-            selectedValue={selectedClub}
-            style={styles.picker}
-            onValueChange={(itemValue, itemIndex) => {
-              setSelectedClub(itemValue);
-
-              const clubObj = clubs.find(
-                (club) => club.Club_name === itemValue
-              );
-              if (clubObj) {
-                setSelectedClubId(clubObj.Club_id);
-              }
-            }}
-          >
-            <Picker.Item label="All Clubs" value="All Clubs" />
-            {clubs.map((club) => (
-              <Picker.Item
-                key={club.Club_id}
-                label={club.Club_name}
-                value={club.Club_name}
-              />
-            ))}
-          </Picker>
-        </View>
-
-        {(selectedClub === "All Clubs"
-          ? memberdetails
-          : memberdetails.filter((member) =>
-              ids.some((idObj) => idObj.User_id === member.user_id)
-            )
-        ).map((member) => (
+      {userId && <PTHeader button={true} text={"Profile"} link={"profile"} />}
+      {userId == null && (
+        <View style={styles.logoContainer}>
           <TouchableOpacity
-            key={member.user_id}
-            style={styles.meetingBlock}
             onPress={() =>
               router.push({
-                pathname: "/profile/[profileID]",
-                params: { profileID: member.user_id },
+                pathname: `/`,
               })
             }
           >
-            <Text style={styles.meetingName}>
-              {member.first_name} {member.last_name}
-            </Text>
+            <Image
+              source={{
+                uri: "https://www.powertalkaustralia.org.au/wp-content/uploads/2023/12/Asset-74x.png",
+              }}
+              style={styles.logo}
+              resizeMode="contain"
+            />
           </TouchableOpacity>
-        ))}
-      </ScrollView>)}
-            {userId == null && <TouchableOpacity style={styles.warning} onPress={()=>router.push("./login")}>Warning: You need to become a member and do the login to see this content</TouchableOpacity>}
+
+          <TouchableOpacity
+            style={styles.iconWrapper}
+            onPress={() => router.push("/login")}
+          >
+            Login
+          </TouchableOpacity>
+        </View>
+      )}
+      {userId != null && (
+        <ScrollView style={styles.content}>
+          {/* Header Block */}
+          <View style={styles.meetingHeaderBlock}>
+            <Text style={styles.meetingHeaderText}>Club Members</Text>
+          </View>
+
+          {/* Sorting Dropdowns */}
+          <View style={styles.sortingRow}>
+            <Picker
+              selectedValue={sortByName}
+              style={styles.picker}
+              onValueChange={(itemValue) => setSortByName(itemValue)}
+            >
+              <Picker.Item label="A-Z" value="A-Z" />
+              <Picker.Item label="Z-A" value="Z-A" />
+            </Picker>
+
+            <Picker
+              selectedValue={selectedClub}
+              style={styles.picker}
+              onValueChange={(itemValue, itemIndex) => {
+                setSelectedClub(itemValue);
+
+                const clubObj = clubs.find(
+                  (club) => club.Club_name === itemValue
+                );
+                if (clubObj) {
+                  setSelectedClubId(clubObj.Club_id);
+                }
+              }}
+            >
+              <Picker.Item label="All Clubs" value="All Clubs" />
+              {clubs.map((club) => (
+                <Picker.Item
+                  key={club.Club_id}
+                  label={club.Club_name}
+                  value={club.Club_name}
+                />
+              ))}
+            </Picker>
+          </View>
+
+          {(selectedClub === "All Clubs"
+            ? memberdetails
+            : memberdetails.filter((member) =>
+                ids.some((idObj) => idObj.User_id === member.user_id)
+              )
+          ).map((member) => (
+            <TouchableOpacity
+              key={member.user_id}
+              style={styles.meetingBlock}
+              onPress={() =>
+                router.push({
+                  pathname: "/profile/[profileID]",
+                  params: { profileID: member.user_id },
+                })
+              }
+            >
+              <Text style={styles.meetingName}>
+                {member.first_name} {member.last_name}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+      )}
+      {userId == null && (
+        <TouchableOpacity
+          style={styles.warning}
+          onPress={() => router.push("./login")}
+        >
+          Warning: You need to become a member and do the login to see this
+          content
+        </TouchableOpacity>
+      )}
 
       {/* Bottom Navigation */}
       <BottomNav active={1} />
@@ -233,12 +246,14 @@ const styles = StyleSheet.create({
     padding: 15,
     borderRadius: 10,
     alignItems: "center",
-  }, logo: {
+  },
+  logo: {
     width: 300,
     height: 50,
-    right:80,
+    right: 80,
     resizeMode: "contain",
-  },logoContainer: {
+  },
+  logoContainer: {
     backgroundColor: "#F1F6F5",
     flexDirection: "row",
     justifyContent: "space-between",
@@ -272,10 +287,10 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     color: "#ffffff",
   },
-  warning:{
-    textAlign:'center',
-    paddingTop:280,
-    paddingBottom:300,
-    fontSize:25,
+  warning: {
+    textAlign: "center",
+    paddingTop: 280,
+    paddingBottom: 300,
+    fontSize: 25,
   },
 });

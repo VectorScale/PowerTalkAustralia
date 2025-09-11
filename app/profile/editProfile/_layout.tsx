@@ -15,25 +15,16 @@ export default function Layout() {
         headerTitleStyle: {
           fontWeight: "bold",
         },
-          header({options}) {
-            return <Subheader {...options} />;
-          },
-        
+        header({ options }) {
+          return <Subheader {...options} />;
+        },
       }}
     >
       <Stack.Screen
         name="[profileID]"
         options={{
-          title: "Edit Profile"
-      }}
-      />
-      
-      <Stack.Screen
-        name="sharing"
-        options={{
-          presentation:"containedTransparentModal",
-          title: "Sharing Data",
-      }}
+          title: "Edit Profile",
+        }}
       />
     </Stack>
   );

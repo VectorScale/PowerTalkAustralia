@@ -15,7 +15,7 @@ const db = mysql.createConnection({
   password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME,
   port: +process.env.DB_PORT,
-  ssl: {ca: fs.readFileSync(path.resolve(__dirname,"../backend/DigiCertGlobalRootCA.crt.pem"))}
+  ssl: {ca: fs.readFileSync(path.resolve(__dirname,"../backend/combined-ca-certificates.pem"))}
 });
 
 db.connect((err) => {
@@ -156,11 +156,9 @@ app.post("/profile/edit/", (req, res) => {
     interests,
     pronouns,
     dob,
-    privacy,
-    marketing,
   } = req.body;
   const editProfileQuery =
-    "UPDATE members SET first_name = ?, last_name = ?, email = ?, phone_number = ?, address = ?, postcode = ?, interests = ?, pronouns = ?, dob = ?, private = ?, want_marketing = ? WHERE user_id = ?";
+    "UPDATE members SET first_name = ?, last_name = ?, email = ?, phone_number = ?, address = ?, postcode = ?, interests = ?, pronouns = ?, dob = ? WHERE user_id = ?";
     db.query(
     editProfileQuery,
     [
@@ -173,8 +171,32 @@ app.post("/profile/edit/", (req, res) => {
       interests,
       pronouns,
       dob,
-      privacy,
-      marketing,
+      profile_id,
+    ],
+    (err, result) => {
+      if (err) {
+        console.error("Database error:", err);
+        return res.status(500).json({ message: "Database Error" });
+      }
+      return res.status(200).json({ message: "Profile Updated Successfully" });
+    }
+  );
+});
+
+//Update the database on what data the user wants to share
+app.post("/profile/share/", (req, res) => {
+  const {
+    profile_id,
+    phone_private,
+    address_private
+  } = req.body;
+  const editProfileQuery =
+    "UPDATE members SET phone_private = ?, address_private = ? WHERE user_id = ?";
+    db.query(
+    editProfileQuery,
+    [
+      phone_private,
+      address_private,
       profile_id,
     ],
     (err, result) => {
@@ -235,6 +257,23 @@ app.post("/users/login", (req, res) => {
     } else {
       return res.status(401).json({ message: "Invalid Credentials" });
     }
+  });
+});
+app.get("/member/:id", (req, res) => {
+  const userId = req.params.id;
+  const query = "SELECT * FROM `members` WHERE User_id = ?";
+
+  db.query(query, [userId], (err, results) => {
+    if (err) {
+      console.error("Database error:", err);
+      return res.status(500).json({ message: "Internal server error" });
+    }
+
+    if (results.length === 0) {
+      return res.status(201).json({ message: "User not found" });
+    }
+
+    res.status(200).json(results[0]);
   });
 });
 app.get("/user/:id", (req, res) => {

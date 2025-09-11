@@ -10,10 +10,10 @@ import {
 import { useForm, Controller } from "react-hook-form";
 import { useRouter } from "expo-router";
 import axios from "axios";
-import FormLabel from "./components/FormLabel";
-import FormInput from "./components/FormInput";
-import Button from "./components/Button";
-import FormContainer from "./components/FormContainer";
+import FormLabel from "@/PTComponents/FormLabel";
+import FormInput from "@/PTComponents/FormInput";
+import Button from "@/PTComponents/Button";
+import FormContainer from "@/PTComponents/FormContainer";
 
 const PORT = 8081;
 
@@ -113,8 +113,6 @@ const RegisterForm = () => {
         `http://${process.env.EXPO_PUBLIC_IP}:8081/users/newMember`,
         payload
       );
-      console.log("Server Response:", createMemberResponse.data);
-      Alert.alert("Success", "Membership successful");
     } catch (error) {
       console.error(
         "Error submitting form:",
@@ -131,9 +129,9 @@ const RegisterForm = () => {
         `http://${process.env.EXPO_PUBLIC_IP}:8081/users/register`,
         payload
       );
-      console.log("Server Response:", registerResponse.data);
       Alert.alert("Success", "Registration successful");
       reset(); // clear the form after successful registration
+      router.back();
     } catch (error) {
       console.error(
         "Error submitting form:",
@@ -200,7 +198,7 @@ const RegisterForm = () => {
             </View>
           ))}
           <View style={styles.function}>
-            <Button onPress={() => router.push("./login")}>Go Back</Button>
+            <Button onPress={() => router.back()}>Go Back</Button>
             <Button onPress={handleSubmit(onSubmit)}>Register</Button>
           </View>
         </View>

@@ -13,11 +13,13 @@ export default FormInput;
 
 const styles = StyleSheet.create({
   formInput: {
+    backgroundColor: "#AFABA3",
+    color: "white",
     borderWidth: 2,
-    borderColor: "#433D33",
+    borderRadius: 10,
     width: "100%",
     height: 50,
-    marginTop: "1%",
+    marginTop: 5,
     paddingLeft: 10,
   },
 });

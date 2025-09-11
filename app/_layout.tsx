@@ -43,9 +43,7 @@ export default function RootLayout() {
       <Stack.Screen
         name="index"
         options={{
-          header() {
-            return <PTHeader enabled={false} />;
-          },
+          headerShown:false,
         }}
       ></Stack.Screen>
       <Stack.Screen

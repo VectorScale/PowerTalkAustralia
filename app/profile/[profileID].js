@@ -16,8 +16,6 @@ const Profile = () => {
   const [profiles, setProfiles] = useState([]);
   const [access, setAccess] = useState(false);
 
-  const [isChecked, setChecked] = useState(false);
-
   const local = useLocalSearchParams();
   const nav = useNavigation();
 
@@ -91,8 +89,7 @@ const Profile = () => {
               <Button
                 onPress={() =>
                   router.navigate({
-                    pathname: "/profile/editProfile/[profileID]",
-                    params: { profileID: local.profileID.toString() },
+                    pathname: "/profile/editProfile/"+local.profileID.toString(),
                   })
                 }
               >
@@ -109,18 +106,18 @@ const Profile = () => {
           <Text style={styles.infoText}>
             <Finger /> Email: {profiles.email}
           </Text>
-          {profiles.phone_number && access && (
+          {profiles.phone_number && (access || profiles.phone_private==1) && (
             <Text style={styles.infoText}>
               <Finger /> Phone Number: {profiles.phone_number}
             </Text>
           )}
-          {profiles.address && access && (
+          {profiles.address && (access || profiles.address_private==1) && (
               <Text style={styles.infoText}><Finger/> Address: {profiles.address}, {profiles.postcode}</Text>
           )}
           {profiles.interests && (
             <Text style={styles.infoText}><Finger/> Notes: {profiles.interests}</Text>
           )}
-          {profiles.dob && access && (
+          {profiles.dob && (
             <Text style={styles.infoText}>
               Date of Birth: {new Date(profiles.dob).toLocaleDateString()}
             </Text>

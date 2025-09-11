@@ -9,6 +9,7 @@ import {
   ScrollView,
   SafeAreaView,
   TouchableOpacity,
+  Modal,
 } from "react-native";
 
 import FormContainer from "@/PTComponents/FormContainer";
@@ -22,6 +23,8 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useLocalSearchParams } from "expo-router";
 import { useForm, Controller } from "react-hook-form";
 import { useNavigation } from "expo-router";
+
+import Checkbox from "expo-checkbox";
 
 const EditProfile = () => {
   const fields = {
@@ -51,10 +54,41 @@ const EditProfile = () => {
   const local = useLocalSearchParams();
   const [userId, setUserId] = useState("");
   const [profiles, setProfiles] = useState([]);
-  const [shown, setShown] = useState(false);
 
   const [privacy, setPrivacy] = useState(false);
   const [marketing, setMarketing] = useState(false);
+
+  const [showSharing, setSharing] = useState(false);
+  const [showPhone, setPhone] = useState(false);
+  const [showAddress, setAddress] = useState(false);
+
+  const handleSharing = async () => {
+    let profile_id = local.profileID.toString();
+    let phone_private = showPhone ? 1 : 0;
+    let address_private = showAddress ? 1 : 0;
+
+    const payload = {
+      profile_id,
+      phone_private,
+      address_private,
+    };
+    try {
+      const editSharingResponse = await axios.post(
+        `http://${process.env.EXPO_PUBLIC_IP}:8081/profile/share`,
+        payload
+      );
+      console.log("Server Response:", editSharingResponse.data);
+      Alert.alert("Success", "Privacy Updated");
+      setSharing(false);
+    } catch (error) {
+      console.error(
+        "Error submitting sharing:",
+        error.response ? error.response.data : error.message
+      );
+      Alert.alert("Error", error.response?.data?.message || "Update failed");
+    }
+  };
+
   useEffect(() => {
     (async () => {
       try {
@@ -62,7 +96,6 @@ const EditProfile = () => {
         if (storedUserId) {
           setUserId(storedUserId);
         }
-        console.log(userId);
       } catch (error) {
         console.error("Error fetching userId from storage:", error);
         Alert.alert("Error", "Failed to load user ID");
@@ -88,8 +121,8 @@ const EditProfile = () => {
 
   useEffect(() => {
     if (profiles) {
-      setPrivacy(profiles.private ? true : false);
-      setMarketing(profiles.want_marketing ? true : false);
+      setPhone(profiles.phone_private ? true : false);
+      setAddress(profiles.address_private ? true : false);
     }
   }, [profiles]);
 
@@ -331,9 +364,7 @@ const EditProfile = () => {
             )}
           </View>
           <View style={styles.function}>
-            <TouchableOpacity
-              onPress={() => router.push("/profile/editProfile/sharing")}
-            >
+            <TouchableOpacity onPress={() => setSharing(true)}>
               <FormLabel>
                 <Finger /> Share Your Info
               </FormLabel>
@@ -346,6 +377,41 @@ const EditProfile = () => {
           </View>
         </FormContainer>
       </View>
+      <Modal
+        visible={showSharing}
+        transparent={true}
+        animationType="slide" // or 'fade' or 'none'
+        onRequestClose={() => setSharing(false)}
+      >
+        <View style={styles.modalBackground}>
+          <View style={styles.modalView}>
+            <Text style={styles.title}>Tick to share with other members:</Text>
+            <View style={styles.contents}>
+              <View style={styles.checkContainer}>
+                <Checkbox
+                  value={showPhone}
+                  onValueChange={setPhone}
+                  color={showPhone ? "#FFD347" : undefined}
+                ></Checkbox>
+              </View>
+              <Text style={styles.label}>Share Email</Text>
+            </View>
+            <View style={styles.contents}>
+              <View style={styles.checkContainer}>
+                <Checkbox
+                  value={showAddress}
+                  onValueChange={setAddress}
+                  color={showAddress ? "#FFD347" : undefined}
+                ></Checkbox>
+              </View>
+              <Text style={styles.label}>Share Phone Number</Text>
+            </View>
+            <View style={styles.function}>
+              <Button onPress={() => handleSharing()}>Done</Button>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </ScrollView>
   );
 };
@@ -353,6 +419,29 @@ const EditProfile = () => {
 export default EditProfile;
 
 const styles = StyleSheet.create({
+  modalBackground: {
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    flexDirection: "row",
+    justifyContent: "center",
+    flex: 1,
+  },
+  modalView: {
+    alignSelf: "center",
+    borderRadius: 25,
+    backgroundColor: "#F1F6F5",
+  },
+  contents: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginVertical: 5,
+  },
+  checkContainer: {
+    flex: 1,
+    marginLeft: "5%",
+  },
+  label: {
+    flex: 7,
+  },
   background: {
     backgroundColor: "#AFABA3",
     height: "100%",
