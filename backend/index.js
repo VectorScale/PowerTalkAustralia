@@ -478,7 +478,6 @@ app.post("/send-messages", async (req, res) => {
       console.error("Database error:", err);
       return res.status(500).json({ message: "Database Error" });
     }
-
     res.json(result);
   });
 });

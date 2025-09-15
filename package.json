@@ -1,8 +1,8 @@
 {
   "name": "powertalkvault",
   "main": "expo-router/entry",
-  "version": "1.0.0",
-    "scripts": {
+  "version": "1.0.0  ",
+  "scripts": {
     "start": "expo start",
     "reset-project": "node ./scripts/reset-project.js",
     "android": "expo start --android",
@@ -44,7 +44,7 @@
     "mysql2": "^3.14.0",
     "nanoid": "^5.1.5",
     "react": "19.0.0",
-    "react-dom": "19.0.0",
+    "react-dom": "^19.0.0",
     "react-hook-form": "^7.56.1",
     "react-native": "0.79.5",
     "react-native-element-dropdown": "^2.12.4",
@@ -58,23 +58,19 @@
     "react-native-svg": "^15.12.1",
     "react-native-vector-icons": "^10.2.0",
     "react-native-web": "^0.20.0",
-    "react-native-webview": "13.13.5"
+    "react-native-webview": "13.13.5",
+    "jest-expo": "~53.0.10",
+    "jest": "~29.7.0"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",
     "@types/jest": "^29.5.12",
-    "@types/react": "~19.0.0",
-    "@types/react-test-renderer": "^19.0.0",
-    "jest": "^29.2.1",
-    "jest-expo": "~52.0.6",
-    "react-test-renderer": "19.0.0",
+    "@types/react": "19.0.0",
     "typescript": "^5.3.3"
   },
   "private": true,
-    "repository": {
+  "repository": {
     "type": "git",
     "url": "git+https://github.com/VectorScale/pt-connection-server.git"
   }
-  
-  
 }
