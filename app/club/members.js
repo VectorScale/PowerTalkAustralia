@@ -78,7 +78,7 @@ const ClubMembersPage = () => {
   useEffect(() => {
     if (!selectedClubId) return;
     axios
-      .get(`http://${process.env.EXPO_PUBLIC_IP}/clubBoard/${selectedClubId}`)
+      .get(`${process.env.EXPO_PUBLIC_IP}/clubBoard/${selectedClubId}`)
       .then((res) => setids(res.data))
       .catch((err) => {
         console.error("Error fetching clubs:", err);

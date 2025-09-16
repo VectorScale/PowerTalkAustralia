@@ -17,7 +17,7 @@ import { Header } from "@react-navigation/stack";
 const LoginForm = () => {
   const router = useRouter();
   const nav = useNavigation();
-
+  process.env.EXPO_PUBLIC_IP
   type Names = "website_login" | "password";
 
   const values = {

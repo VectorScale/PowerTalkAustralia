@@ -36,7 +36,7 @@ const MeetingDetails = () => {
       try {
         axios
           .get(
-            `http://${process.env.EXPO_PUBLIC_IP}:8081/meeting_details/${local.meetingID}`
+            `${process.env.EXPO_PUBLIC_IP}/meeting_details/${local.meetingID}`
           )
           .then((res) => {
             setMeeting(res.data);
