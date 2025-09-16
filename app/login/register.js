@@ -80,7 +80,7 @@ const RegisterForm = () => {
 
       try {
         const checkIDResponse = await axios.post(
-          `http://${process.env.EXPO_PUBLIC_IP}:8081/users/checkIDExists`,
+          `${process.env.EXPO_PUBLIC_IP}/users/checkIDExists`,
           { user_id }
         );
         console.log("Server Response:", checkIDResponse.data.message);
@@ -110,7 +110,7 @@ const RegisterForm = () => {
 
     try {
       const createMemberResponse = await axios.post(
-        `http://${process.env.EXPO_PUBLIC_IP}:8081/users/newMember`,
+        `${process.env.EXPO_PUBLIC_IP}/users/newMember`,
         payload
       );
     } catch (error) {
@@ -126,7 +126,7 @@ const RegisterForm = () => {
 
     try {
       const registerResponse = await axios.post(
-        `http://${process.env.EXPO_PUBLIC_IP}:8081/users/register`,
+        `${process.env.EXPO_PUBLIC_IP}/users/register`,
         payload
       );
       Alert.alert("Success", "Registration successful");

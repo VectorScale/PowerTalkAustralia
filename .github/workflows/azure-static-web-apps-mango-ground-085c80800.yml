@@ -23,7 +23,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '18' # Use a Node version compatible with your Expo app
+          node-version: '22' # Use a Node version compatible with your Expo app
 
       # 3. NEW STEP: Install dependencies and Expo CLI
       - name: Install Dependencies

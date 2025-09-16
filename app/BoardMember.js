@@ -76,7 +76,7 @@ const BoardMemberpage = () => {
   const Search = async () => {
     try {
       const res = await axios.get(
-        `${process.env.EXPO_PUBLIC_IP}:8081/clubBoardMembers/${id}`
+        `${process.env.EXPO_PUBLIC_IP}/clubBoardMembers/${id}`
       );
       setresults(res.data);
       console.log(res.data);
