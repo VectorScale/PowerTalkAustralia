@@ -33,7 +33,7 @@ jobs:
       # 4. NEW STEP: Build the Expo Web App
       - name: Build with Expo
         env:
-         EXPO_PUBLIC_IP : "https://pt-vault-connection-h5efe4f5crgua5fq.australiaeast-01.azurewebsites.net"
+         EXPO_PUBLIC_IP : "https://powertalk-connection-b6dgbzgtduemh8dv.australiaeast-01.azurewebsites.net"
         run: |
           npx expo export --platform web # This creates the 'dist' folder
 
