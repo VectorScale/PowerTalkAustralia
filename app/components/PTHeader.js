@@ -1,4 +1,4 @@
-import React, { useState} from "react";
+import React, { useState } from "react";
 import { Text, View, Image, StyleSheet, TouchableOpacity } from "react-native";
 import { useRouter } from "expo-router";
 import { FontAwesome } from "@expo/vector-icons";
@@ -8,9 +8,9 @@ import { useEffect } from "react";
 const PTHeader = () => {
   const router = useRouter();
   const [menuVisible, setMenuVisible] = useState(false);
-    const [userId, setUserId] = useState(null);
-  
-    useEffect(() => {
+  const [userId, setUserId] = useState(null);
+
+  useEffect(() => {
     (async () => {
       try {
         const storedUserId = await AsyncStorage.getItem("userId");
@@ -26,13 +26,13 @@ const PTHeader = () => {
   }, []);
   const handleLogout = async () => {
     try {
-      await AsyncStorage.removeItem("userId"); 
-      router.push({pathname: "./club_meeting"});
+      await AsyncStorage.removeItem("userId");
+      router.push({ pathname: "./club_meeting" });
     } catch (error) {
       console.error("Error logging out:", error);
     }
   };
-     
+
   return (
     <View style={styles.container}>
       {/* Logo */}
@@ -55,12 +55,14 @@ const PTHeader = () => {
       </View>
 
       {/* User icon */}
-      {userId && <TouchableOpacity
-        style={styles.iconWrapper}
-        onPress={() => setMenuVisible(!menuVisible)}
-      >
-        <FontAwesome name="user" size={30} color="black" />
-      </TouchableOpacity>}
+      {userId && (
+        <TouchableOpacity
+          style={styles.iconWrapper}
+          onPress={() => setMenuVisible(!menuVisible)}
+        >
+          <FontAwesome name="user" size={30} color="black" />
+        </TouchableOpacity>
+      )}
 
       {/* Menu */}
       {menuVisible && (
@@ -69,15 +71,12 @@ const PTHeader = () => {
             style={styles.menuItem}
             onPress={() => {
               setMenuVisible(false);
-              router.push("/profile"); 
+              router.push("/profile");
             }}
           >
             <Text style={styles.menuText}>Profile</Text>
           </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.menuItem}
-            onPress={handleLogout}
-          >
+          <TouchableOpacity style={styles.menuItem} onPress={handleLogout}>
             <Text style={styles.menuText}>Log out</Text>
           </TouchableOpacity>
         </View>
@@ -93,10 +92,6 @@ const styles = StyleSheet.create({
     backgroundColor: "#F1F6F5",
     flexDirection: "row",
     justifyContent: "space-between",
-    alignItems: "center",
-    paddingHorizontal: 15,
-    paddingVertical: 10,
-    zIndex: 10, // Ensure it's layered correctly
   },
   logoContainer: {
     flex: 1,

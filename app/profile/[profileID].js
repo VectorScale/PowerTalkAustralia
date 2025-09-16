@@ -12,7 +12,7 @@ const PORT = 8081;
 
 const Profile = () => {
   const router = useRouter();
-  const [userId, setUserId] = useState("");
+  const [userId, setUserId] = useState(null);
   const [profiles, setProfiles] = useState([]);
   const [access, setAccess] = useState(false);
   process.env.EXPO_PUBLIC_IP

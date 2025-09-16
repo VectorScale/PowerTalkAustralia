@@ -28,7 +28,7 @@ const Home = () => {
           <Text style={styles.titleText}>Welcome to POWERtalk Vault!</Text>
         </View>
         <View style={styles.function}>
-          <Button onPress={() => router.navigate("/club_meeting")}>
+          <Button onPress={() => router.navigate("/club/meetings")}>
             Meeting
           </Button>
           <Button onPress={() => router.navigate("/login")}>Login</Button>

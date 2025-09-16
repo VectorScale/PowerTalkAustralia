@@ -52,7 +52,7 @@ const EditProfile = () => {
   const router = useRouter();
   const nav = useNavigation();
   const local = useLocalSearchParams();
-  const [userId, setUserId] = useState("");
+  const [userId, setUserId] = useState(null);
   const [profiles, setProfiles] = useState([]);
 
   const [privacy, setPrivacy] = useState(false);

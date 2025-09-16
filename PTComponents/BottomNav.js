@@ -2,7 +2,6 @@ import React from "react";
 import { Text, View, StyleSheet, TouchableOpacity } from "react-native";
 import { useRouter } from "expo-router";
 
-
 function Nav (props) {
   const router = useRouter();
   if (props.active){
@@ -25,8 +24,8 @@ function Nav (props) {
 const BottomNav = (props) => {
   return (
     <View style={styles.bottomNav}>
-      <Nav name={'Club Members'} link={'clubmember'} active={props.active!=1}/>
-      <Nav name={'Meetings'} link={'club_meeting'} active={props.active!=2}/>
+      <Nav name={'Club Members'} link={'club/members'} active={props.active!=1}/>
+      <Nav name={'Meetings'} link={'club/meetings'} active={props.active!=2}/>
       <Nav name={'Projects'} link={'members_projectLevels'} active={props.active!=3}/>
     </View>
   );

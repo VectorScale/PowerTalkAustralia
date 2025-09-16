@@ -35,8 +35,8 @@ export default function RootLayout() {
   return (
     <Stack
       screenOptions={{
-        header() {
-          return <PTHeader enabled={true} />;
+        header({options}) {
+          return <PTHeader enabled={true}/>;
         },
       }}
     >
@@ -60,7 +60,6 @@ export default function RootLayout() {
           header() {
             return <PTHeader enabled={false} />;
           },
-          presentation: "modal",
         }}
       ></Stack.Screen>
       <Stack.Screen
