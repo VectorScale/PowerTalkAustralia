@@ -39,10 +39,7 @@ function authenticateToken(req, res, next) {
 
 function requireRole(role) {
   return (req, res, next) => {
-    console.log(req.body.token)
-    console.log(req)
     const { access } = jwt.verify(req.body.token, process.env.JWT_SECRET);
-    console.log(access)
     if (!req.body || access !== role) {
       return res.status(403).json({ 
         error: 'Insufficient permissions',
