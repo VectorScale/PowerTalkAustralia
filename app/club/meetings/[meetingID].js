@@ -52,7 +52,7 @@ const MeetingDetails = () => {
         Alert.alert("Error", "Failed to load user ID");
       }
     })();
-  }, [local]);
+  }, [local.meetingID]);
 
   useEffect(() => {
     nav.setOptions({ headerShown: true });

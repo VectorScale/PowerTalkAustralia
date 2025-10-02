@@ -177,6 +177,15 @@ const ProfileScreen = () => {
     }
   };
 
+  const handleEnrolPress = async (meetingId) => {
+    try {
+      await AsyncStorage.setItem("meetingId", meetingId.toString());
+      router.push(`club/meetings/${meetingId}`);
+    } catch (error) {
+      console.error("Error saving meeting_id:", error);
+    }
+  };
+
   return (
     <View style={styles.container}>
       <ScrollView style={styles.content}>
@@ -225,6 +234,16 @@ const ProfileScreen = () => {
               <Text style={styles.meetingClub}>Club : {meeting.club}</Text>
               <Text style={styles.meetingName}>Meeting : {meeting.name}</Text>
               <Text style={styles.meetingDate}>Meeting date : {date}</Text>
+
+              <TouchableOpacity 
+                style={styles.rightButton}
+                onPress={(e) => {
+                  e.stopPropagation(); // Prevent triggering the parent TouchableOpacity
+                  handleEnrolPress(meeting.id);
+                }}
+              >
+                <Text style={styles.buttonText}>Enrol</Text>
+              </TouchableOpacity>
             </TouchableOpacity>
           );
         })}
@@ -334,6 +353,12 @@ const styles = StyleSheet.create({
     paddingTop: 280,
     paddingBottom: 300,
     fontSize: 25,
+  },
+    rightButton: {
+    padding: 10,
+    backgroundColor: '#007AFF',
+    borderRadius: 5,
+    marginLeft: 10,
   },
 });
 

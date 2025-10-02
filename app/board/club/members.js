@@ -21,14 +21,19 @@ const ClubBoardMemberPage = () => {
   const [memberDetails, setDetails] = useState([]);
   const [clubId, setClubId] = useState("");
   const [userId, setUserId] = useState("");
+  const [token, setToken] = useState("");
   const [payment, setPayment] = useState(0);
 
   useEffect(() => {
     (async () => {
       try {
         const storedUserId = await AsyncStorage.getItem("userId");
+        const storedtoken = await AsyncStorage.getItem('userToken');
         if (storedUserId) {
           setUserId(storedUserId);
+        }
+        if (storedtoken) {
+          setToken(storedtoken);
         }
       } catch (error) {
         console.error("Error fetching userId from storage:", error);
@@ -89,7 +94,7 @@ const ClubBoardMemberPage = () => {
     })();
   }, [clubId, useIsFocused(), payment]);
 
-  const handlePayment = async (member) => {
+  const handlePayment = async (member, token) => {
     try {
       let user_id = member.id;
       let paid = 0;
@@ -121,6 +126,7 @@ const ClubBoardMemberPage = () => {
         paid,
         paid_date,
         guest,
+        token
       };
 
       await axios.post(
@@ -172,7 +178,7 @@ const ClubBoardMemberPage = () => {
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.status}
-              onPress={() => handlePayment(member)}
+              onPress={() => handlePayment(member, token)}
             >
               <Text style={styles.statusText}>
                 {member.paid ? "Paid" : "Unpaid"}

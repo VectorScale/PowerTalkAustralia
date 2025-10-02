@@ -122,6 +122,22 @@ const RegisterForm = () => {
         error.response?.data?.message || "Membership failed"
       );
     }
+    try {
+      const projectLevels1 = await axios.post(
+        `${process.env.EXPO_PUBLIC_IP}/member/projects/1`,
+        payload
+      );
+      Alert.alert("Success", "Level Projects Added");
+    } catch (error) {
+      console.error(
+        "Error submitting form:",
+        error.response ? error.response.data : error.message
+      );
+      Alert.alert(
+        "Error",
+        error.response?.data?.message || "Registration failed"
+      );
+    }
 
     try {
       const registerResponse = await axios.post(
@@ -141,6 +157,7 @@ const RegisterForm = () => {
         error.response?.data?.message || "Registration failed"
       );
     }
+    
   };
 
   return (
