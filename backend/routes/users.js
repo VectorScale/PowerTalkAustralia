@@ -1,8 +1,67 @@
 const express = require("express");
 const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
 const { db } = require("../config/database");
+const { authenticateToken } = require("../auth/tokens");
 
 const router = express.Router();
+
+// Token verification
+router.post("/verify-token", authenticateToken, (req, res) => {
+  res.json({ 
+    valid: true, 
+    user: req.user,
+    message: "Token is valid" 
+  });
+});
+
+// User login
+router.post("/login", (req, res) => {
+  const { website_login, password } = req.body;
+
+  const loginQuery = "SELECT * FROM member_logins WHERE website_login = ?";
+  
+  db.query(loginQuery, [website_login], async (err, result) => {
+    if (err) {
+      console.error("Database error:", err);
+      return res.status(500).json({ message: "Database Error" });
+    }
+
+    if (result.length === 0) {
+      return res.status(401).json({ message: "Invalid Credentials" });
+    }
+
+    const user = result[0];
+    
+    try {
+      const validPassword = await bcrypt.compare(password, user.password);
+      
+      if (!validPassword) {
+        return res.status(401).json({ message: "Invalid Credentials" });
+      }
+
+      const token = jwt.sign(
+        { 
+          userId: user.user_id, 
+          username: user.website_login
+        },
+        process.env.JWT_SECRET,
+        { expiresIn: '24h' }
+      );
+
+      res.json({
+        success: true,
+        token: token,
+        user_id: user.user_id,
+        website_login: user.website_login,
+        message: "Login successful",
+      });
+    } catch (error) {
+      console.error("Password comparison error:", error);
+      return res.status(500).json({ message: "Server Error" });
+    }
+  });
+});
 
 // Register user
 router.post("/register", async (req, res) => {

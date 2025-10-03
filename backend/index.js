@@ -20,7 +20,6 @@ const limiter = rateLimit({
 function authenticateToken(req, res, next) {
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
-  
 
   if (!token) {
     return res.status(401).json({ error: 'Access token required' });
@@ -39,6 +38,20 @@ function authenticateToken(req, res, next) {
 
 function requireRole(role) {
   return (req, res, next) => {
+    if(!req.body){ 
+      return res.status(403).json({ 
+        error: 'no body',
+        require: role,
+        current: req.user ? req.user.access : 'none'
+      });
+    }
+    if(!req.body ||!req.body.token){
+      return res.status(403).json({ 
+        error: 'No Token',
+        require: role,
+        current: req.user ? req.user.access : 'none'
+      });
+    }
     const { access } = jwt.verify(req.body.token, process.env.JWT_SECRET);
     if (!req.body || access !== role) {
       return res.status(403).json({ 
