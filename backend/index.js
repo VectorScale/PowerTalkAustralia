@@ -17,30 +17,42 @@ const limiter = rateLimit({
   message: "Too many requests from this IP, please try again after 15 minutes",
 });
 
+/**
+ * Authenticates tokens for routes that need authentication
+ * @param {object} req the request object, that holds the requests information, like the header that is used for authentification
+ * @param {object} res the response object. WHich holds the 
+ * @param {function} next 
+ * @returns sends error response or call next so the API call will go through
+ */
 function authenticateToken(req, res, next) {
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
   
-
   if (!token) {
     return res.status(401).json({ error: 'Access token required' });
   }
-
-  console.log(jwt.verify(token, process.env.JWT_SECRET))
-
-  jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
-    if (err) {
-      return res.status(403).json({ error: 'Invalid or expired token' });
-    }
-    req.user = user; // Add user info to request object
-    return true;
+  try{
+    jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
+      req.user = user; // Add user info to request object
+      console.log("Verification of", token, "Successful")
+      next();
   });
+  }catch{
+    return res.status(403).json({ error: 'Invalid or expired token' });
+  }
+
+  
 }
 
 function requireRole(role) {
   return (req, res, next) => {
-    const { access } = jwt.verify(req.body.token, process.env.JWT_SECRET);
-    if (!req.body || access !== role) {
+    //console.log(req)
+    const authHeader = req.headers['authorization'];
+    //console.log(req.headers['authorization'])
+    const token = authHeader && authHeader.split(' ')[1]; 
+    const { access } = jwt.verify(token, process.env.JWT_SECRET);
+    //console.log(access);
+    if (!req.headers['authorization'] || access != role) {
       return res.status(403).json({ 
         error: 'Insufficient permissions',
         required: role,
@@ -94,6 +106,7 @@ db.connect((err) => {
 });
 //token
 app.post("/users/verify-token", authenticateToken, (req, res) => {
+  console.log("ran")
   res.json({ 
     valid: true, 
     user: req.user,
@@ -697,8 +710,14 @@ app.get("/projectss/:id/:level", (req, res) => {
     res.json(result);
   });
 });
-app.post("/user/enrol", async (req, res) => {
-  const projectlevel = req.params.level;
+app.post("/users/meeting/enrol/:id", async (req, res) => {
+  const meetingid = req.params.id;
+  const {userId} = req.body;
+  query =
+    `
+    INSERT INTO meeting_attendance (user_id, meeting_id)
+    WHERE
+    `
 });
 app.post("/member/projects/1", async (req, res) => {
   const projectnames = [

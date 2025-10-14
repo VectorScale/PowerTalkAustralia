@@ -46,8 +46,6 @@ api.interceptors.response.use(
 );
 
 
-
-
 const LoginForm = () => {
   const router = useRouter();
   const nav = useNavigation();
@@ -66,6 +64,7 @@ const LoginForm = () => {
   } = useForm({
     defaultValues: values
   });
+
   useEffect(() => {
     checkExistingLogin();
   }, []);
@@ -77,30 +76,34 @@ const LoginForm = () => {
       // Verify token is still valid
       console.log("Check logged In")
       const response = await api.post("/users/verify-token");
+      console.log(response)
       if (response.data.valid) {
         // Token is valid, redirect to appropriate page
-        router.replace({
-          pathname: "/club/meetings",
-        });
+        //Could add 
       }
     }
   } catch (error) {
     // Token is invalid, clear storage
-    await AsyncStorage.removeItem('userToken');
-    await AsyncStorage.removeItem('userId');
+    //await AsyncStorage.removeItem('userToken');
+    //await AsyncStorage.removeItem('userId');
     console.log("No valid token found");
   }
 };
+  const tokenLogin= async (data:any) => {
+    
+  }
 
   const handleLogin = async (data:any) => {
     try {
-      const login = await axios.post(
+      const login = await api.post(
         `${process.env.EXPO_PUBLIC_IP}/users/login`,
         {
           website_login: data.website_login.trim(),
           password: data.password.trim(),
         }
+        
       );
+      
       const member = await axios.get(
         `${process.env.EXPO_PUBLIC_IP}/member/${login.data.user_id}`
       );
@@ -113,6 +116,8 @@ const LoginForm = () => {
         // Store user data in AsyncStorage
         await AsyncStorage.setItem('userToken', login.data.token);
         await AsyncStorage.setItem("userId", member.data.user_id.toString());
+        const response = await api.post(`${process.env.EXPO_PUBLIC_IP}/users/verify-token`);
+        console.log(response)
         router.dismissAll();
         if (member.data.paid == "1" && clubAccess.data.position == null) {
           router.replace({
