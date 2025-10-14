@@ -54,6 +54,25 @@ router.get("/projectss/:id/:level", (req, res) => {
     res.json(result);
   });
 });
+router.get("/projects/completed", (req, res) => {
+  const query =
+    "SELECT user_id, SUM(completed) as completed from `development_program` Group By user_id";
+
+  db.query(query, (err, result) => {
+    if (err) {
+      console.error("Database error:", err);
+      return res.status(500).json({ message: "Internal server error" });
+    }
+
+    if (result.length === 0) {
+      return res.status(201).json({ message: "No Projects Found" });
+    }
+
+    res.json(result);
+  });
+});
+
+
 router.post("/member/projects/1", async (req, res) => {
   const projectnames = [
     "Thoughts for the Day/Inspiration",
@@ -70,26 +89,24 @@ router.post("/member/projects/1", async (req, res) => {
     "Trainee Evaluator",
     "Self=Evaluation",
   ];
-  let { user_id, website_login, password } = req.body;
-  console.log(user_id)
+  const { senderId } = req.body;
   for (const i = 0; i < projectnames.length; i++) {
     if (i == 2 || i == 11) {
       for (const j = 0; j < 3; j++) {
         const query =
-          "INSERT INTO development_program (user_id, project_number, project_title, program_level) VALUES (?, ?, ?, ?)";
+          "INSERT INTO `development_program` (user_id, project_number, project_title, program_level) VALUES (?, ?, ?, ?)";
         db.query(query, [senderId, i, projectnames[i], 1], (err, result) => {
           if (err) {
             console.error("Database error:", err);
             return res.status(500).json({ message: "Database Error" });
           }
-          console.log(result)
           res.json(result);
         });
       }
     } else {
       const query =
-        "INSERT INTO development_program (user_id, project_number, project_title, program_level) VALUES (?, ?, ?, ?)";
-      db.query(query, [user_id, i, projectnames[i], 1], (err, result) => {
+        "INSERT INTO `development_program` (user_id, project_number, project_title, program_level) VALUES (?, ?, ?, ?)";
+      db.query(query, [senderId, i, projectnames[i], 1], (err, result) => {
         if (err) {
           console.error("Database error:", err);
           return res.status(500).json({ message: "Database Error" });
@@ -288,18 +305,112 @@ router.post("/member/projects/4", async (req, res) => {
   }
 });
 router.post("/request-project", async (req, res) => {
-  const { club_id, project_no } = req.body;
+  const { club_id, project_id } = req.body;
   const query =
     "INSERT INTO `program_requests` (project_id, club_id) VALUES (?, ?)";
-  db.query(query, [project_no, club_id], (err, result) => {
+  db.query(query, [project_id, club_id], (err, result) => {
     //need to change this to meeting
-    console.log(club_id);
-    console.log(project_no);
+    if (err) {
+      if(`${err}`.slice(7,16) == "Duplicate") return res.status(201).json({ message: "Request already sent" });
+      console.error("Database error:", err);
+      return res.status(500).json({ message: "Database Error" });
+    }
+    return res.status(200).json({ message: "New Request Successful"});
+  });
+});
+
+router.post("/projects/completeProject/:id", async (req, res) => {
+  const project_id = req.params.id;
+  const query =
+    "UPDATE `development_program` SET `date_achieved` = NOW(), `completed` = 1, `has_signature` = 1 WHERE `project_id` = ?";
+  db.query(query, [project_id], (err, result) => {
     if (err) {
       console.error("Database error:", err);
       return res.status(500).json({ message: "Database Error" });
     }
     return res.status(200).json({ message: "New Request Successful" });
+  });
+});
+router.post("/projects/sendFeedback", async (req, res) => {
+  const { project_id, recipient_id, feedback } = req.body;
+
+  var today = new Date();
+  var dd = String(today.getDate()).padStart(2, "0");
+  var mm = String(today.getMonth() + 1).padStart(2, "0");
+  var yyyy = today.getFullYear();
+
+  var date_feedback_sent = yyyy + "-" + mm + "-" + dd;
+  const query =
+    "INSERT INTO `project_feedback` (project_id, recipient_id, feedback, date_feedback_sent) VALUES (?, ?, ?, ?)";
+  db.query(
+    query,
+    [project_id, recipient_id, feedback, date_feedback_sent],
+    (err, result) => {
+      if (err) {
+        console.error("Database error:", err);
+        return res.status(500).json({ message: "Database Error" });
+      }
+      return res.status(200).json({ message: "New Request Successful" });
+    }
+  );
+});
+router.post("/projects/deleteFeedback/:id", async (req, res) => {
+  const id = req.params.id;
+
+  const query =
+    "DELETE FROM `project_feedback` WHERE feedback_id = ?";
+  db.query(
+    query,
+    [id],
+    (err, result) => {
+      if (err) {
+        console.error("Database error:", err);
+        return res.status(500).json({ message: "Database Error" });
+      }
+      return res.status(200).json({ message: "Feedback Deleted Successfully" });
+    }
+  );
+});
+
+router.post("/projects/deleteRequest/:id", async (req, res) => {
+  const id = req.params.id;
+
+  const query =
+    "DELETE FROM `program_requests` WHERE request_id = ?";
+  db.query(
+    query,
+    [id],
+    (err, result) => {
+      if (err) {
+        console.error("Database error:", err);
+        return res.status(500).json({ message: "Database Error" });
+      }
+      return res.status(200).json({ message: "Request Deleted Successfully" });
+    }
+  );
+});
+
+router.get("/projects/getFeedback/:id", async (req, res) => {
+  const id = req.params.id;
+  const query = "SELECT * FROM project_feedback as A LEFT JOIN development_program AS B ON A.project_id = B.project_id WHERE a.recipient_id = ?";
+  db.query(query, [id], (err, result) => {
+    if (err) {
+      console.error("Database error:", err);
+      return res.status(500).json({ message: "Database Error" });
+    }
+    res.json(result);
+  });
+});
+
+router.get("/projects/getRequests/:id", async (req, res) => {
+  const id = req.params.id;
+  const query = "SELECT A.project_id, A.request_id, B.project_title, B.project_number FROM program_requests as A Inner JOIN development_program AS B ON A.project_id = B.project_id where B.user_id = ?";
+  db.query(query, [id], (err, result) => {
+    if (err) {
+      console.error("Database error:", err);
+      return res.status(500).json({ message: "Database Error" });
+    }
+    res.json(result);
   });
 });
 

@@ -79,27 +79,6 @@ app.get("/allGuests/", (req, res) => {
   });
 });
 
-//Despite being called board member, this route is used to assign a member to a club
-app.post("/BoardMember", (req, res) => {
-  var today = new Date();
-  var dd = String(today.getDate()).padStart(2, "0");
-  var mm = String(today.getMonth() + 1).padStart(2, "0");
-  var yyyy = today.getFullYear();
-
-  var join_date = yyyy + "-" + mm + "-" + dd;
-
-  const { User_id, Club_id } = req.body;
-  const query =
-    "INSERT INTO `member's club` (User_id, Club_id, join_date) VALUES (?, ?, ?)";
-  db.query(query, [User_id, Club_id, join_date], (err, result) => {
-    if (err) {
-      console.error("Database error:", err);
-      return res.status(500).json({ message: "Database Error" });
-    }
-    return res.status(200).json({ message: "New Member Added Successfully" });
-  });
-});
-
 //Update payment info for a user
 app.post("/updatePayment", requireRole('club') ,(req, res) => {
   const { user_id, paid, paid_date, guest } = req.body;

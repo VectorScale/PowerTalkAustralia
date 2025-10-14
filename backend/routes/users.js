@@ -69,45 +69,70 @@ router.post("/users/login", async (req, res) => {
 
   });
 });
+router.get("/member/:id", (req, res) => {
+  const userId = req.params.id;
+  const query = "SELECT * FROM `members` WHERE User_id = ?";
+
+  db.query(query, [userId], (err, results) => {
+    if (err) {
+      console.error("Database error:", err);
+      return res.status(500).json({ message: "Internal server error" });
+    }
+
+    if (results.length === 0) {
+      return res.status(201).json({ message: "User not found" });
+    }
+
+    res.status(200).json(results[0]);
+  });
+});
 
 // Add new member
 router.post("/users/newMember", (req, res) => {
-  let { user_id, first_name, last_name, email, phone_number, join_date } = req.body;
-  
-  if (!join_date) {
-    const today = new Date();
-    join_date = today.toISOString().slice(0, 10);
-  }
+  let { user_id, first_name, last_name, email, phone_number, join_date } =
+    req.body;
+  if (join_date == null || join_date == "") {
+    var today = new Date();
+    var dd = String(today.getDate()).padStart(2, "0");
+    var mm = String(today.getMonth() + 1).padStart(2, "0");
+    var yyyy = today.getFullYear();
 
-  const memberQuery = "INSERT INTO members (user_id, first_name, last_name, email, phone_number, join_date, guest, paid) VALUES (?, ?, ?, ?, ?, ?, TRUE, FALSE)";
-  
-  db.query(memberQuery, [user_id, first_name, last_name, email, phone_number || null, join_date], (err, result) => {
-    if (err) {
-      console.error("Database error:", err);
-      return res.status(500).json({ message: "Database Error" });
+    join_date = yyyy + "-" + mm + "-" + dd;
+  }
+  const memberQuery =
+    "INSERT INTO members (user_id, first_name, last_name, email, phone_number, join_date) VALUES (?, ?, ?, ?, ?, ?)";
+  db.query(
+    memberQuery,
+    [user_id, first_name, last_name, email, phone_number || null, join_date],
+    (err, result) => {
+      if (err) {
+        console.error("Database error:", err);
+        return res.status(500).json({ message: "Database Error" });
+      }
+      return res.status(200).json({ message: "Member Added" });
     }
-    return res.status(200).json({ message: "Member Added" });
-  });
+  );
 });
 
 // Check monthly members
 router.post("/users/checkMonthlyMembers", (req, res) => {
-  const today = new Date();
-  const mm = String(today.getMonth() + 1).padStart(2, "0");
-  const yyyy = today.getFullYear();
+  var today = new Date();
+  var mm = String(today.getMonth() + 1).padStart(2, "0");
+  var yyyy = today.getFullYear();
 
-  const monthlyMembersQuery = "SELECT SUBSTRING(website_login, 7)+1 as monthlyMembers FROM member_logins WHERE SUBSTRING(website_login, 1, 6) LIKE ? ORDER BY website_login DESC LIMIT 1";
+  const monthlyMembersQuery =
+    "select Substring(website_login, 7)+1 as 'monthlyMembers' from member_logins where SUBSTRING(website_login, 1, 6) like " +
+    yyyy +
+    mm +
+    " Order by website_login DESC LIMIT 1";
 
-  db.query(monthlyMembersQuery, [`${yyyy}${mm}%`], (err, result) => {
+  db.query(monthlyMembersQuery, (err, result) => {
     if (err) {
       console.error("Database error:", err);
       return res.status(500).json({ message: "Database Error" });
     }
-    
-    const monthlyMembers = result.length > 0 ? Number(result[0].monthlyMembers) : 1;
-    
     return res.status(200).json({
-      monthlyMembers: monthlyMembers,
+      monthlyMembers: Number(result[0].monthlyMembers),
       message: "Query Successful",
     });
   });
@@ -116,19 +141,22 @@ router.post("/users/checkMonthlyMembers", (req, res) => {
 // Check if ID exists
 router.post("/users/checkIDExists", (req, res) => {
   const { user_id } = req.body;
+
   const idExistsQuery = "SELECT * FROM members WHERE user_id = ?";
-  
   db.query(idExistsQuery, [user_id], (err, result) => {
     if (err) {
       console.error("Database error:", err);
       return res.status(500).json({ message: "Database Error" });
     }
-    
-    const exists = result.length > 0;
-    return res.status(200).json({ 
-      exists: exists, 
-      message: exists ? "ID already Exists" : "ID Unique" 
-    });
+    if (result.length > 0) {
+      return res
+        .status(200)
+        .json({ exists: true, message: "Query Successful. ID already Exists" });
+    } else {
+      return res
+        .status(200)
+        .json({ exists: false, message: "Query Successful. ID Unique" });
+    }
   });
 });
 
@@ -203,11 +231,68 @@ router.post("/profile/share/", (req, res) => {
     }
   );
 });
-router.get("/members", (req, res) => {
-  const query = "SELECT * FROM members";
+
+router.get("/allGuests/", (req, res) => {
+  const query = "SELECT user_id FROM members WHERE paid = 0";
+
   db.query(query, (err, results) => {
-    const user = results;
-    res.json({ user });
+    if (err) {
+      console.error("Database error:", err);
+      return res.status(500).json({ message: "Internal server error" });
+    }
+
+    if (results.length === 0) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.json(results);
+  });
+});
+
+router.post("/user/guest", (req, res) => {
+  const { user_id } = req.body;
+  const ConstraintQuery =
+    "UPDATE members SET guest=TRUE, paid=FALSE WHERE user_id = ?";
+  db.query(ConstraintQuery, [user_id], (err, result) => {
+    if (err) {
+      console.error("Database error:", err);
+      return res.status(500).json({ message: "Database Error" });
+    }
+    return res.status(200).json({ message: "guest Updated Successfully" });
+  });
+});
+
+router.post("/user/member", (req, res) => {
+  const today = new Date().toISOString().slice(0, 10);
+
+  const { user_id } = req.body;
+  const ConstraintQuery = `UPDATE members SET join_date=?, end_date=?, guest=FALSE, paid=TRUE WHERE user_id = ?`;
+  db.query(ConstraintQuery, [today, "2025-06-30", user_id], (err, result) => {
+    if (err) {
+      console.error("Database error:", err);
+      return res.status(500).json({ message: "Database Error" });
+    }
+    return res.status(200).json({ message: "guest Updated Successfully" });
+  });
+});
+
+router.get("/members", (req, res) => {
+  const query = "SELECT user_id FROM members where paid = 1";
+  db.query(query, (err, results) => {
+    res.json(results);
+  });
+});
+
+router.post("/send-message", async (req, res) => {
+  const { senderId } = req.body;
+  const query = "SELECT * FROM members WHERE user_id = ?";
+  db.query(query, [senderId], (err, result) => {
+    if (err) {
+      console.error("Database error:", err);
+      return res.status(500).json({ message: "Database Error" });
+    }
+
+    res.json(result);
   });
 });
 

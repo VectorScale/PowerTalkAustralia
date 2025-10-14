@@ -20,6 +20,23 @@ router.get("/meeting/:id", (req, res) => {
     }
   });
 });
+router.get("/upcomingMeetings/:id", (req, res) => {
+  const clubId = req.params.id;
+  const query = "SELECT * FROM meeting WHERE club_id = ? AND meeting_date > NOW()";
+
+  db.query(query, [clubId], (err, results) => {
+    if (err) {
+      console.error("Database error:", err);
+      return res.status(500).json({ message: "Internal server error" });
+    }
+
+    if (results.length === 0) {
+      return res.status(201).json({ message: "No Meetings Found" });
+    } else if (results.length > 0) {
+      res.json(results);
+    }
+  });
+});
 router.post("/users/meeting/enrol/:id", async (req, res) => {
   const meetingid = req.params.id;
   const {userId} = req.body;
@@ -53,6 +70,73 @@ router.get("/meeting_details/:id", (req, res) => {
     res.json(results); // Send only the first (and only) result
   });
 });
+router.post("/meeting/add/", (req, res) => {
+  const {
+    meetingname,
+    meetingplace,
+    meetingdate,
+    meetingstarttime,
+    meetingarrivaltime,
+    link,
+    instructions,
+  } = req.body;
+  const editProfileQuery =
+    "Insert into meeting SET meeting_name = ?, meeting_date = ?, meeting_time = ?, arrival_time = ?, meeting_place = ?, agenda_file_link = ?, entry_instructions = ?";
+  db.query(
+    editProfileQuery,
+    [
+      meetingname,
+      meetingdate,
+      meetingstarttime,
+      meetingarrivaltime,
+      meetingplace,
+      link,
+      instructions,
+    ],
+    (err, result) => {
+      if (err) {
+        console.error("Database error:", err);
+        return res.status(500).json({ message: "Database Error" });
+      }
+      return res.status(200).json({ message: "Meeting Added Successfully" });
+    }
+  );
+});
+router.post("/meeting/edit/", (req, res) => {
+  const {
+    meetingid,
+    meetingname,
+    meetingplace,
+    meetingdate,
+    meetingstarttime,
+    meetingarrivaltime,
+    link,
+    instructions,
+  } = req.body;
+  const editProfileQuery =
+    "UPDATE meeting SET meeting_name = ?, meeting_date = ?, meeting_time = ?, arrival_time = ?, meeting_place = ?, agenda_file_link = ?, entry_instructions = ? WHERE meeting_id = ?";
+  db.query(
+    editProfileQuery,
+    [
+      meetingname,
+      meetingdate,
+      meetingstarttime,
+      meetingarrivaltime,
+      meetingplace,
+      link,
+      instructions,
+      meetingid,
+    ],
+    (err, result) => {
+      if (err) {
+        console.error("Database error:", err);
+        return res.status(500).json({ message: "Database Error" });
+      }
+      return res.status(200).json({ message: "Meeting Updated Successfully" });
+    }
+  );
+});
+
 router.post("/autofill-meetings", async (req, res) => {
   let nextDates = [];
   const club_data = await get_clubdates();
