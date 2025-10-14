@@ -6,7 +6,7 @@ const dayjsRecur = require("dayjs-recur");
 
 // Import configurations and routes
 const { db, connect } = require("./config/database");
-const { authenticateToken, requireRole, limiter } = require("./config/auth");
+const { authenticateToken, requireRole, limiter } = require("./config/security");
  
 const userRoutes = require("./routes/users");
 const boardRoutes = require("./routes/board");
