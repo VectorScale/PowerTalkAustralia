@@ -3,6 +3,11 @@ const { db } = require("../config/database");
 
 const router = express.Router();
 
+/**
+ * Get meetings by club ID
+ * URL Parameter: id - the club ID to retrieve meetings for
+ * @param {int} id The club ID to retrieve meetings for
+ */
 router.get("/meeting/:id", (req, res) => {
   const clubId = req.params.id;
   const query = "SELECT * FROM meeting WHERE club_id = ?";
@@ -20,6 +25,11 @@ router.get("/meeting/:id", (req, res) => {
     }
   });
 });
+/**
+ * Get upcoming meetings by club ID
+ * URL Parameter: id 
+ * @param {int} id The club ID to retrieve upcoming meetings for
+ */
 router.get("/upcomingMeetings/:id", (req, res) => {
   const clubId = req.params.id;
   const query = "SELECT * FROM meeting WHERE club_id = ? AND meeting_date > NOW()";
@@ -37,6 +47,12 @@ router.get("/upcomingMeetings/:id", (req, res) => {
     }
   });
 });
+/**
+ * Enroll user in a meeting
+ * Request Body: { userId }
+ * @param {int} id The meeting ID to enroll in
+ * @param {int} userId The user ID to enroll in the meeting
+ */
 router.post("/users/meeting/enrol/:id", async (req, res) => {
   const meetingid = req.params.id;
   const {userId} = req.body;
@@ -53,6 +69,11 @@ router.post("/users/meeting/enrol/:id", async (req, res) => {
     return res.status(200).json({ message: "Meeting Enrolled" });
   });
 });
+/**
+ * Get meeting details by meeting ID
+ * URL Parameter: id 
+ * @param {int} id The meeting ID to retrieve details for
+ */
 router.get("/meeting_details/:id", (req, res) => {
   const meetingId = req.params.id;
   const query = "SELECT * FROM meeting WHERE meeting_id = ?";
@@ -70,6 +91,17 @@ router.get("/meeting_details/:id", (req, res) => {
     res.json(results); // Send only the first (and only) result
   });
 });
+/**
+ * Add a new meeting
+ * Request Body: { meetingname, meetingplace, meetingdate, meetingstarttime, meetingarrivaltime, link, instructions }
+ * @param {string} meetingname The name of the meeting
+ * @param {string} meetingplace The location of the meeting
+ * @param {date} meetingdate The date of the meeting
+ * @param {time} meetingstarttime The start time of the meeting
+ * @param {time} meetingarrivaltime The arrival time for the meeting
+ * @param {string} link The agenda file link for the meeting
+ * @param {string} instructions The entry instructions for the meeting
+ */
 router.post("/meeting/add/", (req, res) => {
   const {
     meetingname,
@@ -102,6 +134,18 @@ router.post("/meeting/add/", (req, res) => {
     }
   );
 });
+/**
+ * Edit an existing meeting
+ * Request Body: { meetingid, meetingname, meetingplace, meetingdate, meetingstarttime, meetingarrivaltime, link, instructions }
+ * @param {int} meetingid The meeting ID to update
+ * @param {string} meetingname The name of the meeting
+ * @param {string} meetingplace The location of the meeting
+ * @param {date} meetingdate The date of the meeting
+ * @param {time} meetingstarttime The start time of the meeting
+ * @param {time} meetingarrivaltime The arrival time for the meeting
+ * @param {string} link The agenda file link for the meeting
+ * @param {string} instructions The entry instructions for the meeting
+ */
 router.post("/meeting/edit/", (req, res) => {
   const {
     meetingid,
@@ -136,7 +180,9 @@ router.post("/meeting/edit/", (req, res) => {
     }
   );
 });
-
+/**
+ * Auto-generate meetings for clubs based on their schedules
+ */
 router.post("/autofill-meetings", async (req, res) => {
   let nextDates = [];
   const club_data = await get_clubdates();

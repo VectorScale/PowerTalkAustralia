@@ -52,6 +52,7 @@ const RegisterForm = () => {
       );
       console.log("Server Response:", memberResponse.data.message);
       Alert.alert("Success", "Membership successful");
+      console.log(memberResponse.data.monthlyMembers);
       website_login = yyyy + mm + memberResponse.data.monthlyMembers;
       password =
         data.first_name.charAt(0).toUpperCase() +
@@ -127,7 +128,7 @@ const RegisterForm = () => {
         `${process.env.EXPO_PUBLIC_IP}/member/projects/1`,
         payload
       );
-      Alert.alert("Success", "Level Projects Added");
+      console.log("Success Level 1 Projects Added")
     } catch (error) {
       console.error(
         "Error submitting form:",
@@ -135,7 +136,23 @@ const RegisterForm = () => {
       );
       Alert.alert(
         "Error",
-        error.response?.data?.message || "Registration failed"
+        error.response?.data?.message || "Project Creation failed"
+      );
+    }
+    try {
+      const projectLevels3 = await axios.post(
+        `${process.env.EXPO_PUBLIC_IP}/member/projects/3`,
+        payload
+      );
+      console.log("Success Level 2 Projects Added")
+    } catch (error) {
+      console.error(
+        "Error submitting form:",
+        error.response ? error.response.data : error.message
+      );
+      Alert.alert(
+        "Error",
+        error.response?.data?.message || "Project Creation failed"
       );
     }
 
@@ -144,6 +161,7 @@ const RegisterForm = () => {
         `${process.env.EXPO_PUBLIC_IP}/users/register`,
         payload
       );
+      console.log("Login Info Added");
       Alert.alert("Success", "Registration successful");
       reset(); // clear the form after successful registration
       router.back();
