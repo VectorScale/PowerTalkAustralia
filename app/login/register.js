@@ -92,11 +92,13 @@ const RegisterForm = () => {
         );
         Alert.alert(
           "Error",
-          error.response?.data?.message || "Member Check Failed"
+          error.response?.data?.message || "Member Registration Failed"
         );
+        break;
       }
     }
 
+    if(uniqueID == false) return;
     //Use the generated registration information to insert into the database
     let join_date = null;
     const payload = {

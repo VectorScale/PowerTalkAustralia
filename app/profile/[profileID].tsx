@@ -86,6 +86,7 @@ const Profile = () => {
       <ScrollView>
         <View style={styles.information}>
           <View style={styles.function}>
+            <View style={{flex:1}}></View>
             {userId == local.profileID.toString() && (
               <Button
                 onPress={() =>

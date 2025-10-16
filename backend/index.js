@@ -108,10 +108,9 @@ app.post("/users/checkMonthlyMembers", (req, res) => {
   var yyyy = today.getFullYear();
 
   const monthlyMembersQuery =
-    "select Substring(website_login, 7)+1 as 'monthlyMembers' from member_logins where SUBSTRING(website_login, 1, 6) like " +
+    "select max(cast(Substring(website_login, 7)as decimal))+1 as 'monthlyMembers' from member_logins where SUBSTRING(website_login, 1, 6) like " +
     yyyy +
-    mm +
-    " Order by website_login DESC LIMIT 1";
+    mm;
 
   db.query(monthlyMembersQuery, (err, result) => {
     if (err) {
@@ -336,6 +335,43 @@ app.get("/allClubs/", (req, res) => {
     res.json(results);
   });
 });
+
+
+app.get("/allCouncils/", (req, res) => {
+  const query = "SELECT * FROM council";
+
+  db.query(query, (err, results) => {
+    if (err) {
+      console.error("Database error:", err);
+      return res.status(500).json({ message: "Internal server error" });
+    }
+
+    if (results.length === 0) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.json(results);
+  });
+});
+
+app.get("/councilClubs/:id", (req, res) => {
+  const id = req.params.id
+  const query = "SELECT * FROM club where council_id = ?";
+
+  db.query(query,[id], (err, results) => {
+    if (err) {
+      console.error("Database error:", err);
+      return res.status(500).json({ message: "Internal server error" });
+    }
+
+    if (results.length === 0) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.json(results);
+  });
+});
+
 app.get("/club/:id", (req, res) => {
   const clubId = req.params.id;
   const query = "SELECT club_name FROM club WHERE club_id = ?";
@@ -566,6 +602,23 @@ app.get("/clubBoardMembers/:id", (req, res) => {
   });
 });
 
+app.get("/allClubBoardMembers/", (req, res) => {
+  const query = "SELECT * FROM board_members";
+
+  db.query(query, (err, results) => {
+    if (err) {
+      console.error("Database error:", err);
+      return res.status(500).json({ message: "Internal server error" });
+    }
+
+    if (results.length === 0) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.json(results);
+  });
+});
+
 app.get("/members", (req, res) => {
   const query = "SELECT user_id FROM members where paid = 1";
   db.query(query, (err, results) => {
@@ -614,6 +667,21 @@ app.post("/BoardMember", (req, res) => {
   const query =
     "INSERT INTO `member's club` (User_id, Club_id, join_date) VALUES (?, ?, ?)";
   db.query(query, [User_id, Club_id, join_date], (err, result) => {
+    if (err) {
+      console.error("Database error:", err);
+      return res.status(500).json({ message: "Database Error" });
+    }
+    return res.status(200).json({ message: "New Member Added Successfully" });
+  });
+});
+
+app.post("/editBoardMember", (req, res) => {
+const {user_id, position, start, end} = req.body;
+
+  const query =
+    "UPDATE `board_members` SET position = ?, term_start = ?, term_end = ? WHERE user_id = ?";
+
+  db.query(query, [position, start, end || null, user_id], (err, result) => {
     if (err) {
       console.error("Database error:", err);
       return res.status(500).json({ message: "Database Error" });
