@@ -128,7 +128,7 @@ const AddExistingPage = () => {
         await axios.post(`${process.env.EXPO_PUBLIC_IP}/BoardMember/`, payload);
         Alert.alert("Success", "Member added to your club");
         setSearch("");
-        setAdd(add+1);
+        setAdd(add + 1);
       } else {
         console.log("You can not add member");
       }
@@ -148,7 +148,7 @@ const AddExistingPage = () => {
       {filteredDetails.length == 0 ? (
         <Text style={[styles.content, { flex: 1 }]}>User Not Found</Text>
       ) : (
-        <ScrollView style={[styles.content]}>
+        <ScrollView style={[styles.content, { maxHeight: "65%" }]}>
           {filteredDetails.map((member, index) => (
             <TouchableOpacity
               key={index}
@@ -169,8 +169,8 @@ const AddExistingPage = () => {
               Alert.alert(
                 `${filteredDetails[active].firstName} ${filteredDetails[active].lastName}`,
                 `Email: ${filteredDetails[active].email}\n` +
-                  (filteredDetails[active].phone_number != null ?
-                    `Phone Number: ${filteredDetails[active].phone_number}` : 'No phone number provided')
+                (filteredDetails[active].phone_number != null ?
+                  `Phone Number: ${filteredDetails[active].phone_number}` : 'No phone number provided')
               )
             }
           >

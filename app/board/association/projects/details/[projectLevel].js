@@ -39,6 +39,7 @@ const ProjectDetailPage = () => {
           `${process.env.EXPO_PUBLIC_IP}/projects/`,
           payload
         );
+        console.log(data);
         setProject(data);
       } catch (error) {
         console.error("Error fetching projects:", error);
@@ -77,24 +78,6 @@ const ProjectDetailPage = () => {
     }
   };
 
-  const handleRequest = async (projectId) => {
-    const payload = {
-      project_id: projectId,
-      club_id: null,
-    };
-    console.log(payload);
-    try {
-      const sentRequest = await axios.post(`${process.env.EXPO_PUBLIC_IP}/request-project`, payload);
-      if (sentRequest.status == 201) {
-        Alert.alert("Error", "Request Already Sent");
-      } else {
-        Alert.alert("Success", "Request Sent");
-      }
-    } catch (error) {
-      Alert.alert("Error", error.response?.data?.message || "Request failed to send");
-    }
-  };
-
   return (
     <View style={styles.background}>
       <View style={styles.container}>
@@ -114,7 +97,7 @@ const ProjectDetailPage = () => {
           {uniqueProjects.map((row, index) => (
             <View key={index} style={styles.tableRow}>
               <TouchableOpacity
-                onPress={() => { setVisible(true); setSelected(index + 1); setSelectedID(uniqueProjects[index].project_id) }}
+                onPress={() => {setVisible(true);setSelected(index+1);setSelectedID(uniqueProjects[index].project_id)}}
                 style={styles.feedbackButton}
               >
                 <Text style={styles.projectCell}>{index + 1}</Text>
@@ -124,7 +107,7 @@ const ProjectDetailPage = () => {
                 {row.date_achieved ? (
                   new Date(row.date_achieved).toLocaleDateString()
                 ) : (
-                  <PTButton onPress={() => handleRequest(row.project_id)}>Request</PTButton>
+                  <PTButton>Request</PTButton>
                 )}
               </Text>
             </View>
@@ -254,9 +237,9 @@ const styles = StyleSheet.create({
     fontSize: 15,
   },
   feedbackInput: {
-    textAlignVertical: "top",
+    textAlignVertical:"top",
     marginVertical: 10,
-    height: 100,
+    height:100,
     borderRadius: 5,
     borderColor: "#8A7D6A",
     borderWidth: 2,

@@ -1,32 +1,31 @@
 import React from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
-import { router } from "expo-router";
 
-const AsscociationMenu = () => (
+const AsscociationMenu = (props) => (
   <View style={styles.containers}>
       <TouchableOpacity
         style={styles.buttons}
-        onPress={() => router.push("/board/association/club/members/")}
+        onPress={props.onPressMembers}
       >
         <Text style={styles.name}>Members</Text>
       </TouchableOpacity>
       <TouchableOpacity
         style={styles.buttons}
-        onPress={() => router.push("/board/association/club/guests/")}
-      >
-        <Text style={styles.name}>Guest</Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        style={styles.buttons}
-        onPress={() => router.push("/board/association/club/boardMembers/")}
+        onPress={props.onPressBoard}
       >
         <Text style={styles.name}>Board</Text>
       </TouchableOpacity>
       <TouchableOpacity
         style={styles.buttons}
-        onPress={() => router.push("/board/association/club/councilMembers/")}
+        onPress={props.onPressCouncil}
       >
         <Text style={styles.name}>Council</Text>
+      </TouchableOpacity>
+      <TouchableOpacity
+        style={styles.buttons}
+        onPress={props.onPressAssoc}
+      >
+        <Text style={styles.name}>Association</Text>
       </TouchableOpacity>
   </View>
 );
@@ -38,6 +37,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "center",
     alignItems:"center",
+    marginTop:20,
   },
   buttons: {
     backgroundColor:"#065395",

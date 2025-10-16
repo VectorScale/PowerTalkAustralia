@@ -8,6 +8,7 @@ import {
   ScrollView,
 } from "react-native";
 import { Picker } from "@react-native-picker/picker";
+import Filter from "@/PTComponents/Filter";
 
 import BottomNav from "@/PTComponents/BottomNav";
 import MeetingBottom from "@/PTComponents/MeetingBottom";
@@ -18,8 +19,6 @@ import { useRouter } from "expo-router";
 import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-const PORT = 8081;
-
 const ProfileScreen = () => {
   const router = useRouter();
 
@@ -27,6 +26,8 @@ const ProfileScreen = () => {
   const [clubs, setClubs] = useState([]);
   const [clubMeetings, setClubwithMeetings] = useState([]);
   const nav = useNavigation();
+
+  const [filterShow, setFilterShow] = useState(false);
   const [selectedMonth, setSelectedMonth] = useState("May");
   const [selectedYear, setSelectedYear] = useState("2025");
   const [selectedClub, setSelectedClub] = useState("All Clubs");
@@ -190,7 +191,11 @@ const ProfileScreen = () => {
     <View style={styles.container}>
       <ScrollView style={styles.content}>
         {/* Sorting Dropdowns */}
-        <View style={styles.sortingRow}>
+        <TouchableOpacity onPress={() => setFilterShow(!filterShow)}
+          style={styles.filterButton}>
+          <Text style={styles.filterText}>Filter <Filter/></Text>
+        </TouchableOpacity>
+        {filterShow && <View style={styles.sortingRow}>
           <Picker
             selectedValue={selectedMonth}
             style={styles.picker}
@@ -220,7 +225,7 @@ const ProfileScreen = () => {
               <Picker.Item key={club} label={club} value={club}></Picker.Item>
             ))}
           </Picker>
-        </View>
+        </View>}
 
         {/* Meeting Buttons */}
         {filteredMeetings.map((meeting, index) => {
@@ -265,28 +270,8 @@ const ProfileScreen = () => {
 
 const styles = StyleSheet.create({
   container: {
-    flex: 8,
+    flex: 1,
     backgroundColor: "#ffffff",
-  },
-  topBar: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    paddingHorizontal: 20,
-    paddingTop: 40,
-    paddingBottom: 10,
-    backgroundColor: "#AFABA3",
-    alignItems: "center",
-  },
-  logo: {
-    width: 300,
-    height: 50,
-    right: 80,
-    resizeMode: "contain",
-  },
-  profileText: {
-    fontSize: 16,
-    color: "#333",
-    fontWeight: "bold",
   },
   function: {
     flexDirection: "row",
@@ -310,14 +295,26 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     color: "#ffffff",
   },
+  filterButton: {
+    flex:1,
+    marginVertical:10,
+    padding:5,
+    borderRadius:8,
+    backgroundColor: "#065395",
+    alignItems:"center",
+    justifyContent:"center"
+  },
+  filterText: {
+    color: "white",
+    fontSize: 20,
+  },
   sortingRow: {
-    flexDirection: "row",
     justifyContent: "space-between",
-    marginTop: 20,
   },
   picker: {
     flex: 1,
-    height: 50,
+    backgroundColor:"#F1F6F5",
+    marginBottom:5,
   },
   meetingBlock: {
     marginTop: 15,

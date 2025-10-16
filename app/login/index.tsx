@@ -53,16 +53,16 @@ const LoginForm = () => {
   type Names = "website_login" | "password";
 
   const values = {
-      website_login: "",
-      password: "",
-    };
+    website_login: "",
+    password: "",
+  };
 
   const {
     control,
     handleSubmit,
     formState: { errors, isSubmitted },
   } = useForm({
-    defaultValues: values
+    defaultValues: values,
   });
 
   useEffect(() => {
@@ -119,27 +119,25 @@ const LoginForm = () => {
         const response = await api.post(`${process.env.EXPO_PUBLIC_IP}/users/verify-token`);
         console.log(response)
         router.dismissAll();
-        if (member.data.paid == "1" && clubAccess.data.position == null) {
+        if (member.data.paid == "1" && clubAccess.data.level_of_access == null) {
           router.replace({
             pathname: "/club/meetings",
           });
-        } else if (
-          clubAccess.data.position != null
-        ) {
+        } else if (clubAccess.data.level_of_access != null) {
           await AsyncStorage.setItem("userId", member.data.user_id.toString());
           router.replace({
             pathname: "/login/selectDestination",
           });
-        } else if (member.data.guest == "1") {
+        } else if (member.data.paid == "0") {
           await AsyncStorage.setItem("userId", member.data.user_id.toString());
           router.replace({
-            pathname: "/GuestPage",
+            pathname: "/guest/limit",
           });
         }
       }
 
       Alert.alert("Login Response", login.data.message);
-    } catch (error:any) {
+    } catch (error: any) {
       if (error.login) {
         console.error("Server error response:", error.login.data);
         Alert.alert("Error", error.login.data.message || "An error occurred");
@@ -169,7 +167,7 @@ const LoginForm = () => {
               rule: { required: "You must enter your Password" },
               secure: true,
             },
-          ].map(({ name , label, autocomplete, rule, secure }) => (
+          ].map(({ name, label, autocomplete, rule, secure }) => (
             <View key={name} style={styles.inputGroup}>
               {label && <FormLabel>{label}</FormLabel>}
               <Controller
@@ -187,7 +185,9 @@ const LoginForm = () => {
                 rules={rule}
               />
               {errors[name as Names] && isSubmitted && (
-                <Text style={styles.errorText}>{errors[name as Names]?.message ?? "Hello"}</Text>
+                <Text style={styles.errorText}>
+                  {errors[name as Names]?.message ?? "Hello"}
+                </Text>
               )}
             </View>
           ))}
@@ -208,7 +208,7 @@ export default LoginForm;
 const styles = StyleSheet.create({
   background: {
     backgroundColor: "#F1F6F5",
-    flex:1
+    flex: 1,
   },
   container: {
     padding: 10,

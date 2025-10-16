@@ -32,9 +32,7 @@ type Names =
   | "phone_number"
   | "address"
   | "postcode"
-  | "interests"
-  | "dob"
-  | "pronouns";
+  | "note";
 
 const EditProfile = () => {
   const fields = {
@@ -44,11 +42,10 @@ const EditProfile = () => {
     phone_number: "",
     address: "",
     postcode: "",
-    interests: "",
-    dob: "",
-    pronouns: "",
+    note: "",
     want_marketing: false,
   };
+
   const {
     control,
     handleSubmit,
@@ -61,13 +58,10 @@ const EditProfile = () => {
   const router = useRouter();
   const nav = useNavigation();
   const global = useGlobalSearchParams();
-  console.log(global);
   const [userId, setUserId] = useState("");
   const [profiles, setProfiles] = useState<any>([]);
 
-  const [privacy, setPrivacy] = useState(false);
   const [marketing, setMarketing] = useState(false);
-
   const [showSharing, setSharing] = useState(false);
   const [hidePhone, setHidePhone] = useState(false);
   const [hideAddress, setHideAddress] = useState(false);
@@ -84,18 +78,10 @@ const EditProfile = () => {
       address_private,
     };
     try {
-      const editSharingResponse = await axios.post(
-        `${process.env.EXPO_PUBLIC_IP}/profile/share`,
-        payload
-      );
-      console.log("Server Response:", editSharingResponse.data);
+      await axios.post(`${process.env.EXPO_PUBLIC_IP}/profile/share`, payload);
       Alert.alert("Success", "Privacy Updated");
       setSharing(false);
     } catch (error: any) {
-      console.error(
-        "Error submitting sharing:",
-        error.response ? error.response.data : error.message
-      );
       Alert.alert("Error", error.response?.data?.message || "Update failed");
     }
   };
@@ -104,15 +90,21 @@ const EditProfile = () => {
     (async () => {
       try {
         const storedUserId = await AsyncStorage.getItem("userId");
-        if (storedUserId) {
-          setUserId(storedUserId);
-        }
+        if (storedUserId) setUserId(storedUserId);
       } catch (error) {
-        console.error("Error fetching userId from storage:", error);
         Alert.alert("Error", "Failed to load user ID");
       }
     })();
   }, []);
+
+  // prevent editing another user's profile
+  useEffect(() => {
+    if (!userId || !global.profileID) return;
+    if (userId !== global.profileID.toString()) {
+      Alert.alert("Permission denied", "You can only edit your own profile.");
+      router.replace({ pathname: "/profile/[profileID]", params: { profileID: global.profileID.toString() } });
+    }
+  }, [userId, global.profileID]);
 
   useEffect(() => {
     (async () => {
@@ -124,7 +116,6 @@ const EditProfile = () => {
           setProfiles(res.data);
         }
       } catch (error) {
-        console.error("Error fetching profile:", error);
         Alert.alert("Error", "Failed to fetch profile");
       }
     })();
@@ -132,16 +123,14 @@ const EditProfile = () => {
 
   useEffect(() => {
     if (profiles) {
-      setHidePhone(!!profiles.phone_private );
-      setHideAddress(!!profiles.address_private );
+      setHidePhone(!!profiles.phone_private);
+      setHideAddress(!!profiles.address_private);
     }
   }, [profiles]);
 
   useEffect(() => {
     if (userId == global.profileID.toString()) {
-      nav.setOptions({
-        title: `Editing Your Profile`,
-      });
+      nav.setOptions({ title: `Editing Your Profile` });
     } else {
       nav.setOptions({
         title: `Editing ${profiles.first_name} ${profiles.last_name}`,
@@ -150,76 +139,41 @@ const EditProfile = () => {
   });
 
   useEffect(() => {
-    var date = "";
-    var post = "";
-    var phone = "";
-
     if (profiles) {
-      console.log(profiles.first_name);
-      if (profiles.dob) {
-        let currDate = new Intl.DateTimeFormat(undefined, {
-          year: "numeric",
-          month: "2-digit",
-          day: "2-digit",
-        }).format(new Date(profiles.dob));
-
-        let [day, month, year] = currDate.split("/");
-        date += year;
-        date += "-";
-        date += month;
-        date += "-";
-        date += day;
-      }
-      if (profiles.phone_number) {
-        phone += profiles.phone_number;
-      }
-      if (profiles.postcode) {
-        post += profiles.postcode;
-      }
       reset({
         first_name: profiles.first_name || "",
         last_name: profiles.last_name || "",
         email: profiles.email || "",
-        phone_number: phone,
+        phone_number: profiles.phone_number || "",
         address: profiles.address || "",
-        postcode: post,
-        interests: profiles.interests || "",
-        dob: date,
-        pronouns: profiles.pronouns || "",
+        postcode: profiles.postcode || "",
+        note: profiles.notes ?? profiles.note ?? "",
         want_marketing: !!profiles.want_marketing,
       });
     }
-  }, [profiles]);
+  }, [profiles, reset]);
 
   const onSubmit = async (data: any) => {
-    //Use the generated registration information to insert into the database
-    for (var key in data) {
-      if (data[key] == "") {
-        data[key] = null;
-      }
-    }
+    for (var key in data) if (data[key] == "") data[key] = null;
+
     let profile_id = global.profileID.toString();
+    const { note, ...rest } = data;
     const payload = {
-      ...data,
+      ...rest,
+      notes: note,  
       profile_id,
       marketing,
     };
+
     try {
-      await axios.post(
-        `${process.env.EXPO_PUBLIC_IP}/profile/edit`,
-        payload
-      );
-      
+      await axios.post(`${process.env.EXPO_PUBLIC_IP}/profile/edit`, payload);
       Alert.alert("Success", "Update successful");
       router.back();
     } catch (error: any) {
-      console.error(
-        "Error submitting form:",
-        error.response ? error.response.data : error.message
-      );
       Alert.alert("Error", error.response?.data?.message || "Update failed");
     }
   };
+
   return (
     <ScrollView>
       <View style={styles.background}>
@@ -265,10 +219,7 @@ const EditProfile = () => {
                 lines: 1,
                 multiline: false,
                 rule: {
-                  maxLength: {
-                    value: 20,
-                    message: "Enter a valid Phone Number",
-                  },
+                  maxLength: { value: 20, message: "Enter a valid Phone Number" },
                   pattern: {
                     value: /[\d\s]{10,20}$/,
                     message: "Enter a valid phone number",
@@ -291,86 +242,44 @@ const EditProfile = () => {
                 multiline: false,
                 rule: {
                   maxLength: { value: 4, message: "Enter a valid postcode" },
-                  pattern: {
-                    value: /\d{4}$/,
-                    message: "Enter a valid postcode",
-                  },
+                  pattern: { value: /\d{4}$/, message: "Enter a valid postcode" },
                 },
               },
               {
-                field: "interests",
-                placeholder: "What Interests You?",
-                label: "Interests",
+                field: "note",
+                placeholder: "Additional Notes",
+                label: "Note",
                 autocomplete: "off",
-                lines: 4,
+                lines: 3,
                 multiline: true,
               },
-              {
-                field: "dob",
-                placeholder: "YYYY-MM-DD",
-                label: "Date of Birth",
-                autocomplete: "off",
-                lines: 1,
-                multiline: false,
-                rule: {
-                  maxLength: { value: 10, message: "Enter a valid date" },
-                  pattern: {
-                    value: /\d{4}-\d{2}-\d{2}/,
-                    message: "Enter a valid date (YYYY-MM-DD)",
-                  },
-                },
-              },
-              {
-                field: "pronouns",
-                placeholder: "Pronouns",
-                label: "Pronouns",
-                autocomplete: "off",
-                lines: 1,
-                multiline: false,
-                rule: {
-                  pattern: {
-                    value: /[^/s]+\/[^/s]+/,
-                    message: "Invalid Pronouns '*/*'",
-                  },
-                },
-              },
-            ].map(
-              ({
-                field,
-                placeholder,
-                label,
-                lines,
-                multiline,
-                autocomplete,
-                rule,
-              }) => (
-                <View key={field} style={styles.inputs}>
-                  {label && <FormLabel>{label}</FormLabel>}
-                  <Controller
-                    key={field}
-                    control={control}
-                    name={field as Names}
-                    render={({ field: { onChange, value } }) => (
-                      <FormInput
-                        autoComplete={autocomplete}
-                        placeholder={placeholder}
-                        onChangeText={onChange}
-                        value={value}
-                        autoCapitalize="none"
-                        multiline={multiline}
-                        lines={lines}
-                      />
-                    )}
-                    rules={rule}
-                  />
-                  {errors[field as Names] && isSubmitted && (
-                    <Text style={styles.errorText}>
-                      {errors[field as Names]?.message?.toString()}
-                    </Text>
+            ].map(({ field, placeholder, label, lines, multiline, autocomplete, rule }) => (
+              <View key={field} style={styles.inputs}>
+                {label && <FormLabel>{label}</FormLabel>}
+                <Controller
+                  key={field}
+                  control={control}
+                  name={field as Names}
+                  render={({ field: { onChange, value } }) => (
+                    <FormInput
+                      autoComplete={autocomplete}
+                      placeholder={placeholder}
+                      onChangeText={onChange}
+                      value={value}
+                      autoCapitalize="none"
+                      multiline={multiline}
+                      lines={lines}
+                    />
                   )}
-                </View>
-              )
-            )}
+                  rules={rule}
+                />
+                {errors[field as Names] && isSubmitted && (
+                  <Text style={styles.errorText}>
+                    {errors[field as Names]?.message?.toString()}
+                  </Text>
+                )}
+              </View>
+            ))}
           </View>
           <View style={styles.function}>
             <TouchableOpacity onPress={() => setSharing(true)}>
@@ -381,15 +290,16 @@ const EditProfile = () => {
           </View>
           <View style={styles.function}>
             <Button onPress={handleSubmit(onSubmit)}>Submit Changes</Button>
-
             <Button onPress={() => router.back()}>Cancel Changes</Button>
           </View>
         </FormContainer>
       </View>
+
+      {/* Privacy Modal */}
       <Modal
         visible={showSharing}
         transparent={true}
-        animationType="fade" // or 'fade' or 'none'
+        animationType="fade"
         onRequestClose={() => setSharing(false)}
       >
         <View style={styles.modalBackground}>
@@ -401,7 +311,7 @@ const EditProfile = () => {
                   value={hidePhone}
                   onValueChange={setHidePhone}
                   color={hidePhone ? "#FFD347" : undefined}
-                ></Checkbox>
+                />
               </View>
               <Text style={styles.label}>Hide Phone Number</Text>
             </View>
@@ -411,19 +321,19 @@ const EditProfile = () => {
                   value={hideAddress}
                   onValueChange={setHideAddress}
                   color={hideAddress ? "#FFD347" : undefined}
-                ></Checkbox>
+                />
               </View>
               <Text style={styles.label}>Hide Address</Text>
             </View>
             <View style={styles.modalFunction}>
-              <View style={{flex:1}}>
+              <View style={{ flex: 1 }}>
                 <Text style={styles.disclaimer}>
                   All information in the member list is for association use only
                   and may not be shared outside the association without the
                   express permission of the individual
                 </Text>
               </View>
-                <Button onPress={() => handleSharing()}>Done</Button>
+              <Button onPress={() => handleSharing()}>Done</Button>
             </View>
           </View>
         </View>
@@ -484,24 +394,21 @@ const styles = StyleSheet.create({
     borderTopEndRadius: 20,
     borderTopStartRadius: 20,
     borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    color:"white",
-    fontWeight:"bold",
-    fontSize:15,
-  },
-  checkbox: {
-    marginTop: 15,
-    marginHorizontal: 5,
-    alignSelf: "center",
-  },
-  titleText: {
+    borderTopRightRadius: 20, //iOS and android use different words to set specific border radii
     color: "white",
-    fontSize: 25,
     fontWeight: "bold",
+    fontSize: 15,
   },
   errorText: {
     color: "red",
     marginBottom: 10,
   },
-  disclaimer: { alignSelf:"center", fontSize: 6, textAlign: "right", flex: 1, paddingLeft:10, paddingTop:"10%"},
+  disclaimer: {
+    alignSelf: "center",
+    fontSize: 6,
+    textAlign: "right",
+    flex: 1,
+    paddingLeft: 10,
+    paddingTop: "10%",
+  },
 });

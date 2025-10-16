@@ -7,10 +7,11 @@ import {
   TouchableOpacity,
   ScrollView,
 } from "react-native";
-import BottomNav from "@/PTComponents/BottomNav";
-import Pencil from "@/PTComponents/Pencil";
-import FilterButton from "@/PTComponents/FilterButton";
 import { Picker } from "@react-native-picker/picker";
+import FilterButton from "@/PTComponents/FilterButton";
+
+import BottomNav from "@/PTComponents/BottomNav";
+import MeetingBottom from "@/PTComponents/MeetingBottom";
 
 import { useNavigation } from "@react-navigation/native";
 import { useRouter } from "expo-router";
@@ -34,6 +35,11 @@ const ProfileScreen = () => {
 
   const [selectedMonth, setSelectedMonth] = useState("");
   const [selectedYear, setSelectedYear] = useState("");
+  const [selectedClub, setSelectedClub] = useState("All Clubs");
+
+  const clubss = clubMeetings.map((club) => club.club);
+  const uniqueClubs = Array.from(new Set(clubss));
+  const dropdownClubs = ["All Clubs", ...uniqueClubs];
 
   useEffect(() => {
     (async () => {
@@ -72,7 +78,7 @@ const ProfileScreen = () => {
   }, [userId]);
 
   useEffect(() => {
-    if (!clubs) return;
+    if (clubs == []) return;
     (async () => {
       try {
         // Step 2: Fetch names for all clubs
@@ -84,7 +90,7 @@ const ProfileScreen = () => {
             const clubNames = res.data.club_name;
 
             const resMeet = await axios.get(
-              `${process.env.EXPO_PUBLIC_IP}/upcomingMeetings/${item.club_id}`
+              `${process.env.EXPO_PUBLIC_IP}/meeting/${item.club_id}`
             );
             const MeetNames = resMeet.data;
             if (resMeet.status != 200) return null;
@@ -119,7 +125,6 @@ const ProfileScreen = () => {
   }, [clubs]);
 
   useEffect(() => {
-    console.log(clubMeetings);
     const allYears = clubMeetings.map((meeting) =>
       new Date(meeting.date).getFullYear().toString()
     );
@@ -140,7 +145,7 @@ const ProfileScreen = () => {
     setSelectedYear(years[0]);
   }, [months, years]);
   useEffect(() => {
-    if (!clubs) return;
+    if (clubs == []) return;
     (async () => {
       setFiltered(
         clubMeetings.filter((meeting) => {
@@ -151,27 +156,34 @@ const ProfileScreen = () => {
           const meetingYear = meetingDate.getFullYear().toString();
           const monthMatches = selectedMonth === meetingMonth;
           const yearMatches = selectedYear === meetingYear;
-          return monthMatches && yearMatches && clubMeetings;
+          const clubMatches =
+            selectedClub === "All Clubs" || meeting.club === selectedClub;
+          if (selectedClub == "All Clubs") {
+            return monthMatches && yearMatches && clubMeetings;
+          } else {
+            return monthMatches && yearMatches && clubMatches;
+          }
         })
       );
     })();
-  }, [clubs, selectedMonth, selectedYear]);
+  }, [clubs, selectedClub, selectedMonth, selectedYear]);
 
   return (
     <View style={styles.container}>
-      {/* Top Bar */}
       <ScrollView style={styles.content}>
-        <TouchableOpacity
-          style={styles.add}
-          onPress={() => router.push("/board/club/addMeeting")}
-        >
-          <Text style={styles.addText}>+ Add new meeting</Text>
-        </TouchableOpacity>
-
         {/* Sorting Dropdowns */}
         <FilterButton onFilter={() => setFilterShow(!filterShow)} />
         {filterShow && (
-          <View>
+          <View style={styles.sortingRow}>
+            <Picker
+              selectedValue={selectedClub}
+              style={styles.picker}
+              onValueChange={(itemValue) => setSelectedClub(itemValue)}
+            >
+              {dropdownClubs.map((club) => (
+                <Picker.Item key={club} label={club} value={club}></Picker.Item>
+              ))}
+            </Picker>
             <Picker
               selectedValue={selectedYear}
               style={styles.picker}
@@ -197,94 +209,57 @@ const ProfileScreen = () => {
         {filteredMeetings.map((meeting, index) => {
           const date = new Date(meeting.date).toISOString().split("T")[0];
           return (
-            <View key={meeting.id} style={styles.row}>
-              <TouchableOpacity onPress={() => router.push({ pathname: '/board/club/editMeeting/[meetingID]', params: { meetingID: meeting.id } })}>
-                <Pencil />
-              </TouchableOpacity>
-              <TouchableOpacity
-                key={index}
-                style={styles.meetingBlock}
-                onPress={() => {
-                  console.log(meeting.id);
-                  router.navigate({ pathname: '/club/meetings/[meetingID]', params: { meetingID: meeting.id } });
-                }}
-              >
-                <Text style={styles.meetingClub}>#{meeting.id}</Text>
-                <Text style={styles.meetingName}>{meeting.name}</Text>
-                <Text style={styles.meetingDate}>Date: {date}</Text>
-              </TouchableOpacity>
-            </View>
+            <TouchableOpacity
+              key={index}
+              style={styles.meetingBlock}
+              onPress={() =>
+                router.navigate({
+                  pathname: "/club/meetings/[meetingID]",
+                  params: { meetingID: meeting.id },
+                })
+              }
+            >
+              <Text style={styles.meetingClub}>Club : {meeting.club}</Text>
+              <Text style={styles.meetingName}>Meeting : {meeting.name}</Text>
+              <Text style={styles.meetingDate}>Meeting date : {date}</Text>
+            </TouchableOpacity>
           );
         })}
       </ScrollView>
-
       {/* Bottom Navigation */}
-      <BottomNav
-        number={3}
-        name={["Members", "Guests", "Meeting"]}
-        link={[
-          "/board/club/members",
-          "/board/club/guests",
-          "/board/club/meetings",
-        ]}
-        active={3}
-      />
+      {userId ? (
+        <BottomNav
+          number={3}
+          name={["Members", "Meetings", "Projects"]}
+          link={[
+            "/board/association/members",
+            "/board/association/meetings",
+            "/board/association/projects",
+          ]}
+          active={2}
+        />
+      ) : (
+        <MeetingBottom />
+      )}
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  row: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginHorizontal: 16,
-    marginVertical: 8,
-    marginTop: 20,
-  },
-  add: {
-    marginTop: 10,
-    flex: 1,
-  },
-  addText: {
-    color: "#065395",
-    fontSize: 15,
-    flex: 1,
-    textAlign: "right",
-  },
   container: {
     flex: 1,
     backgroundColor: "#ffffff",
   },
-  topBar: {
+  function: {
     flexDirection: "row",
-    justifyContent: "space-between",
-    paddingHorizontal: 20,
-    paddingTop: 40,
-    paddingBottom: 10,
-    backgroundColor: "#AFABA3",
-    alignItems: "center",
-  },
-  logo: {
-    width: 300,
-    height: 50,
-    right: 80,
-    resizeMode: "contain",
-  },
-  profileText: {
-    fontSize: 16,
-    color: "#333",
-    fontWeight: "bold",
+    justifyContent: "center",
+    flex: 1,
   },
   content: {
     paddingHorizontal: 20,
-
-    marginBottom: 20,
-  },
-  symbol: {
-    fontSize: 40,
   },
   meetingHeaderBlock: {
-    marginTop: 100,
+    marginTop: 30,
     backgroundColor: "#065395",
     padding: 15,
     borderRadius: 10,
@@ -297,10 +272,21 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     color: "#ffffff",
   },
+  filterButton: {
+    flex: 1,
+    marginVertical: 10,
+    padding: 5,
+    borderRadius: 8,
+    backgroundColor: "#065395",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  filterText: {
+    color: "white",
+    fontSize: 20,
+  },
   sortingRow: {
-    flexDirection: "row",
     justifyContent: "space-between",
-    marginTop: 20,
   },
   picker: {
     flex: 1,
@@ -308,17 +294,14 @@ const styles = StyleSheet.create({
     marginBottom: 5,
   },
   meetingBlock: {
-    flex: 1,
-    padding: 12,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: "#E5E7EB",
+    marginTop: 15,
     backgroundColor: "#8A7D6A",
+    padding: 15,
+    borderRadius: 10,
   },
   meetingClub: {
     fontWeight: "600",
     color: "#ffffff",
-    fontSize: 20,
   },
   meetingName: {
     fontSize: 16,

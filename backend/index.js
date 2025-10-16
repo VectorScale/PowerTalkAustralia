@@ -156,7 +156,7 @@ app.post("/users/newMember", (req, res) => {
     join_date = yyyy + "-" + mm + "-" + dd;
   }
   const memberQuery =
-    "INSERT INTO members (user_id, first_name, last_name, email, phone_number, join_date, guest, paid) VALUES (?, ?, ?, ?, ?, ?, TRUE, FALSE)";
+    "INSERT INTO members (user_id, first_name, last_name, email, phone_number, join_date) VALUES (?, ?, ?, ?, ?, ?)";
   db.query(
     memberQuery,
     [user_id, first_name, last_name, email, phone_number || null, join_date],
@@ -376,7 +376,8 @@ app.get("/member/:id", (req, res) => {
 });
 app.get("/user/:id", (req, res) => {
   const userId = req.params.id;
-  const query = "SELECT Club_id as club_id FROM `member's club` WHERE User_id = ?";
+  const query =
+    "SELECT Club_id as club_id FROM `member's club` WHERE User_id = ?";
 
   db.query(query, [userId], (err, results) => {
     if (err) {
@@ -393,7 +394,7 @@ app.get("/user/:id", (req, res) => {
 });
 
 app.get("/allGuests/", (req, res) => {
-  const query = "SELECT user_id FROM members WHERE guest = 1";
+  const query = "SELECT user_id FROM members WHERE paid = 0";
 
   db.query(query, (err, results) => {
     if (err) {
@@ -460,6 +461,23 @@ app.get("/meeting/:id", (req, res) => {
     }
   });
 });
+app.get("/upcomingMeetings/:id", (req, res) => {
+  const clubId = req.params.id;
+  const query = "SELECT * FROM meeting WHERE club_id = ? AND meeting_date > NOW()";
+
+  db.query(query, [clubId], (err, results) => {
+    if (err) {
+      console.error("Database error:", err);
+      return res.status(500).json({ message: "Internal server error" });
+    }
+
+    if (results.length === 0) {
+      return res.status(201).json({ message: "No Meetings Found" });
+    } else if (results.length > 0) {
+      res.json(results);
+    }
+  });
+});
 
 app.get("/meeting_details/:id", (req, res) => {
   const meetingId = req.params.id;
@@ -479,6 +497,74 @@ app.get("/meeting_details/:id", (req, res) => {
   });
 });
 
+app.post("/meeting/add/", (req, res) => {
+  const {
+    meetingname,
+    meetingplace,
+    meetingdate,
+    meetingstarttime,
+    meetingarrivaltime,
+    link,
+    instructions,
+  } = req.body;
+  const editProfileQuery =
+    "Insert into meeting SET meeting_name = ?, meeting_date = ?, meeting_time = ?, arrival_time = ?, meeting_place = ?, agenda_file_link = ?, entry_instructions = ?";
+  db.query(
+    editProfileQuery,
+    [
+      meetingname,
+      meetingdate,
+      meetingstarttime,
+      meetingarrivaltime,
+      meetingplace,
+      link,
+      instructions,
+    ],
+    (err, result) => {
+      if (err) {
+        console.error("Database error:", err);
+        return res.status(500).json({ message: "Database Error" });
+      }
+      return res.status(200).json({ message: "Meeting Added Successfully" });
+    }
+  );
+});
+
+app.post("/meeting/edit/", (req, res) => {
+  const {
+    meetingid,
+    meetingname,
+    meetingplace,
+    meetingdate,
+    meetingstarttime,
+    meetingarrivaltime,
+    link,
+    instructions,
+  } = req.body;
+  const editProfileQuery =
+    "UPDATE meeting SET meeting_name = ?, meeting_date = ?, meeting_time = ?, arrival_time = ?, meeting_place = ?, agenda_file_link = ?, entry_instructions = ? WHERE meeting_id = ?";
+  db.query(
+    editProfileQuery,
+    [
+      meetingname,
+      meetingdate,
+      meetingstarttime,
+      meetingarrivaltime,
+      meetingplace,
+      link,
+      instructions,
+      meetingid,
+    ],
+    (err, result) => {
+      if (err) {
+        console.error("Database error:", err);
+        return res.status(500).json({ message: "Database Error" });
+      }
+      return res.status(200).json({ message: "Meeting Updated Successfully" });
+    }
+  );
+});
+
 app.get("/club_details/:id", (req, res) => {
   const clubId = req.params.id;
   const query = "SELECT * FROM club WHERE Club_id = ?";
@@ -490,7 +576,7 @@ app.get("/club_details/:id", (req, res) => {
     }
 
     if (results.length === 0) {
-      return res.status(404).json({ message: "CLub not found" });
+      return res.status(404).json({ message: "Club not found" });
     }
 
     res.json(results); // Send only the first (and only) result
@@ -517,6 +603,7 @@ app.get("/clubAccess/:id", (req, res) => {
 
 app.get("/clubBoard/:id", (req, res) => {
   const clubId = req.params.id;
+  
   const query = "SELECT User_id FROM `member's club` WHERE Club_id = ?";
 
   db.query(query, [clubId], (err, results) => {
@@ -570,10 +657,20 @@ app.get("/clubBoardMembers/:id", (req, res) => {
 });
 
 app.get("/members", (req, res) => {
-  const query = "SELECT * FROM members";
+  const query = "SELECT user_id FROM members where paid = 1";
   db.query(query, (err, results) => {
-    const user = results;
-    res.json({ user });
+    res.json(results);
+  });
+});
+
+app.get("/association/boardMembers/:access", (req, res) => {
+  const access = req.params.access;
+  const levels = ['club','council','association'];
+
+  const query = `SELECT user_id FROM board_members WHERE level_of_access IN ('${levels.slice(access-1).join("','")}')`;
+  
+  db.query(query, (err, results) => {
+    res.json(results);
   });
 });
 
@@ -616,11 +713,11 @@ app.post("/BoardMember", (req, res) => {
 });
 
 //Update payment info for a user
-app.post("/updatePayment", requireRole('club') ,(req, res) => {
-  const { user_id, paid, paid_date, guest } = req.body;
+app.post("/updatePayment", (req, res) => {
+  const { user_id, paid, paid_date } = req.body;
   const query =
-    "UPDATE members SET paid = ?, paid_date = ?, guest = ? WHERE user_id = ?";
-  db.query(query, [paid, paid_date, guest, user_id], (err, result) => {
+    "UPDATE members SET paid = ?, paid_date = ?, guest = 0 WHERE user_id = ?";
+  db.query(query, [paid, paid_date, user_id], (err, result) => {
     if (err) {
       console.error("Database error:", err);
       return res.status(500).json({ message: "Database Error" });
@@ -629,8 +726,22 @@ app.post("/updatePayment", requireRole('club') ,(req, res) => {
   });
 });
 
+//Increment the amount of free meetings a guest has attended
+app.post("/guest/increment", (req, res) => {
+  const {user_id, guest} = req.body;
+  const query =
+    "UPDATE members SET guest = ? WHERE user_id = ?";
+  db.query(query, [guest, user_id], (err, result) => {
+    if (err) {
+      console.error("Database error:", err);
+      return res.status(500).json({ message: "Database Error" });
+    }
+    return res.status(200).json({ message: "Meetings Incremented Successfully" });
+  });
+});
+
 app.get("/clubs", (req, res) => {
-  const query = "SELECT Club_id, Club_name FROM club";
+  const query = "SELECT club_id, club_name FROM club";
   db.query(query, (err, results) => {
     if (err) return res.status(500).json({ message: "Internal server error" });
     res.json(results);
@@ -710,15 +821,25 @@ app.get("/projectss/:id/:level", (req, res) => {
     res.json(result);
   });
 });
-app.post("/users/meeting/enrol/:id", async (req, res) => {
-  const meetingid = req.params.id;
-  const {userId} = req.body;
-  query =
-    `
-    INSERT INTO meeting_attendance (user_id, meeting_id)
-    WHERE
-    `
+app.get("/projects/completed", (req, res) => {
+  const query =
+    "SELECT user_id, SUM(completed) as completed from `development_program` Group By user_id";
+
+  db.query(query, (err, result) => {
+    if (err) {
+      console.error("Database error:", err);
+      return res.status(500).json({ message: "Internal server error" });
+    }
+
+    if (result.length === 0) {
+      return res.status(201).json({ message: "No Projects Found" });
+    }
+
+    res.json(result);
+  });
 });
+
+
 app.post("/member/projects/1", async (req, res) => {
   const projectnames = [
     "Thoughts for the Day/Inspiration",
@@ -953,18 +1074,112 @@ app.post("/member/projects/4", async (req, res) => {
   }
 });
 app.post("/request-project", async (req, res) => {
-  const { club_id, project_no } = req.body;
+  const { club_id, project_id } = req.body;
   const query =
     "INSERT INTO `program_requests` (project_id, club_id) VALUES (?, ?)";
-  db.query(query, [project_no, club_id], (err, result) => {
+  db.query(query, [project_id, club_id], (err, result) => {
     //need to change this to meeting
-    console.log(club_id);
-    console.log(project_no);
+    if (err) {
+      if(`${err}`.slice(7,16) == "Duplicate") return res.status(201).json({ message: "Request already sent" });
+      console.error("Database error:", err);
+      return res.status(500).json({ message: "Database Error" });
+    }
+    return res.status(200).json({ message: "New Request Successful"});
+  });
+});
+
+app.post("/projects/completeProject/:id", async (req, res) => {
+  const project_id = req.params.id;
+  const query =
+    "UPDATE `development_program` SET `date_achieved` = NOW(), `completed` = 1, `has_signature` = 1 WHERE `project_id` = ?";
+  db.query(query, [project_id], (err, result) => {
     if (err) {
       console.error("Database error:", err);
       return res.status(500).json({ message: "Database Error" });
     }
     return res.status(200).json({ message: "New Request Successful" });
+  });
+});
+app.post("/projects/sendFeedback", async (req, res) => {
+  const { project_id, recipient_id, feedback } = req.body;
+
+  var today = new Date();
+  var dd = String(today.getDate()).padStart(2, "0");
+  var mm = String(today.getMonth() + 1).padStart(2, "0");
+  var yyyy = today.getFullYear();
+
+  var date_feedback_sent = yyyy + "-" + mm + "-" + dd;
+  const query =
+    "INSERT INTO `project_feedback` (project_id, recipient_id, feedback, date_feedback_sent) VALUES (?, ?, ?, ?)";
+  db.query(
+    query,
+    [project_id, recipient_id, feedback, date_feedback_sent],
+    (err, result) => {
+      if (err) {
+        console.error("Database error:", err);
+        return res.status(500).json({ message: "Database Error" });
+      }
+      return res.status(200).json({ message: "New Request Successful" });
+    }
+  );
+});
+app.post("/projects/deleteFeedback/:id", async (req, res) => {
+  const id = req.params.id;
+
+  const query =
+    "DELETE FROM `project_feedback` WHERE feedback_id = ?";
+  db.query(
+    query,
+    [id],
+    (err, result) => {
+      if (err) {
+        console.error("Database error:", err);
+        return res.status(500).json({ message: "Database Error" });
+      }
+      return res.status(200).json({ message: "Feedback Deleted Successfully" });
+    }
+  );
+});
+
+app.post("/projects/deleteRequest/:id", async (req, res) => {
+  const id = req.params.id;
+
+  const query =
+    "DELETE FROM `program_requests` WHERE request_id = ?";
+  db.query(
+    query,
+    [id],
+    (err, result) => {
+      if (err) {
+        console.error("Database error:", err);
+        return res.status(500).json({ message: "Database Error" });
+      }
+      return res.status(200).json({ message: "Request Deleted Successfully" });
+    }
+  );
+});
+
+app.get("/projects/getFeedback/:id", async (req, res) => {
+  const id = req.params.id;
+  const query = "SELECT * FROM project_feedback as A LEFT JOIN development_program AS B ON A.project_id = B.project_id WHERE a.recipient_id = ?";
+  db.query(query, [id], (err, result) => {
+    if (err) {
+      console.error("Database error:", err);
+      return res.status(500).json({ message: "Database Error" });
+    }
+    res.json(result);
+  });
+});
+
+app.get("/projects/getRequests/:id", async (req, res) => {
+  const id = req.params.id;
+  const query = "SELECT A.project_id, A.request_id, B.project_title, B.project_number FROM program_requests as A Inner JOIN development_program AS B ON A.project_id = B.project_id where B.user_id = ?";
+  db.query(query, [id], (err, result) => {
+    if (err) {
+      console.error("Database error:", err);
+      return res.status(500).json({ message: "Database Error" });
+    }
+    res.json(result);
   });
 });
 app.post("/autofill-meetings", async (req, res) => {

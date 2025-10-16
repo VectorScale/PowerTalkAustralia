@@ -1,20 +1,20 @@
 import { useRouter } from 'expo-router';
-import { View, Text, StyleSheet, ActivityIndicator, Alert,
-   Image,
-   TouchableOpacity
+import {
+  View, Text, StyleSheet, ActivityIndicator, Alert,
+  Image,
+  TouchableOpacity
 } from 'react-native';
-import PTHeader from './components/PTHeader';
 import { useEffect, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import axios from 'axios';
 
 const MeetingDetails = () => {
-     const router = useRouter();
+  const router = useRouter();
   const [meeting, setMeeting] = useState(null);
   const [loading, setLoading] = useState(true);
-    const [meetingId, setMeetingId] = useState(null);
-    const [userId, setUserId] = useState(null);
+  const [meetingId, setMeetingId] = useState(null);
+  const [userId, setUserId] = useState(null);
   useEffect(() => {
     (async () => {
       try {
@@ -29,7 +29,7 @@ const MeetingDetails = () => {
       }
     })();
   }, []);
- useEffect(() => {
+  useEffect(() => {
     (async () => {
       try {
         const storedMeetingId = await AsyncStorage.getItem('meetingId');
@@ -58,41 +58,41 @@ const MeetingDetails = () => {
         });
     }
   }, [userId]);
- const m = async (meeting_date) =>{
+  const m = async (meeting_date) => {
     const d = new Date(meeting_date);
 
-  const dayName = new Intl.DateTimeFormat('en-AU', {
-    weekday: 'long',
-    timeZone: 'Australia/Sydney',
-  }).format(d);
+    const dayName = new Intl.DateTimeFormat('en-AU', {
+      weekday: 'long',
+      timeZone: 'Australia/Sydney',
+    }).format(d);
 
-  const dateStr = new Intl.DateTimeFormat('en-AU', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    timeZone: 'Australia/Sydney',
-  }).format(d);
+    const dateStr = new Intl.DateTimeFormat('en-AU', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      timeZone: 'Australia/Sydney',
+    }).format(d);
 
-  return dayName 
- }
+    return dayName
+  }
 
- const n= async (meeting_date) =>{
+  const n = async (meeting_date) => {
     const d = new Date(meeting_date);
 
-  const dayName = new Intl.DateTimeFormat('en-AU', {
-    weekday: 'long',
-    timeZone: 'Australia/Sydney',
-  }).format(d);
+    const dayName = new Intl.DateTimeFormat('en-AU', {
+      weekday: 'long',
+      timeZone: 'Australia/Sydney',
+    }).format(d);
 
-  const dateStr = new Intl.DateTimeFormat('en-AU', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    timeZone: 'Australia/Sydney',
-  }).format(d);
+    const dateStr = new Intl.DateTimeFormat('en-AU', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      timeZone: 'Australia/Sydney',
+    }).format(d);
 
-  return dateStr
- }
+    return dateStr
+  }
 
   if (loading) return <ActivityIndicator size="large" color="#0000ff" style={styles.loader} />;
 
@@ -100,90 +100,48 @@ const MeetingDetails = () => {
 
   return (
     <View style={styles.background}>
-       
-      <PTHeader button={true} text={'Profile'} link={'profile'}/>
 
-       <View style={styles.meetingHeaderBlock}>
+      <View style={styles.meetingHeaderBlock}>
         <View style={styles.label}>
-             <TouchableOpacity onPress={()=>
-                router.push("/ClubBoardMemberMeeting")}>
-                <Image
-        source={require("../app/images.png")}
-        style={{ width: 50
-          ,height: 50}}
-        resizeMode="contain"
-      />
-             </TouchableOpacity>
-              <Text style={styles.meetingHeaderText}>{meeting[0].
-             meetingname}</Text>
+          <Text style={styles.meetingHeaderText}>{meeting[0].
+            meetingname}</Text>
 
 
         </View>
-                  
-                </View>
+
+      </View>
       <View style={styles.container}>
-      <View style={styles.label}>
- <Image
-        source={require("../app/image.png")}
-        style={{ width: 50
-          ,height: 50}}
-        resizeMode="contain"
-      />
+        <View style={styles.label}>
 
-             <Text style={styles.value}>{meeting[0].
-             meetingname
-             }</Text>
-  </View>
+          <Text style={styles.value}>{meeting[0].
+            meetingname
+          }</Text>
+        </View>
 
-<View style={styles.label}>
- <Image
-        source={require("../app/image.png")}
-        style={{ width: 50
-          ,height: 50}}
-        resizeMode="contain"
-      />
+        <View style={styles.label}>
 
-            <Text style={styles.value}>
-        {
-     m( meeting[0].meeting_date
-    )} { n(meeting[0].meeting_date)} {meeting[0].arrival_time} for {meeting[0].start_time} 
-    </Text>
-  </View>
+          <Text style={styles.value}>
+            {
+              m(meeting[0].meeting_date
+              )} {n(meeting[0].meeting_date)} {meeting[0].arrival_time} for {meeting[0].start_time}
+          </Text>
+        </View>
 
-<View style={styles.label}>
- <Image
-        source={require("../app/image.png")}
-        style={{ width: 50
-          ,height: 50}}
-        resizeMode="contain"
-      />
+        <View style={styles.label}>
+          <Text style={styles.value}>{meeting[0].meeting_place}</Text>
+        </View>
+        <View style={styles.label}>
+          <Text style={styles.value}>Program: {meeting[0].agenda_file_link == null ? "(insert link)" : meeting[0].agenda_file_link}</Text>
+        </View>
 
-            <Text style={styles.value}>{meeting[0].meeting_place}</Text>
-  </View>
-<View style={styles.label}>
- <Image
-        source={require("../app/image.png")}
-        style={{ width: 50
-          ,height: 50}}
-        resizeMode="contain"
-      />
-<Text style={styles.value}>Program: {meeting[0].agenda_file_link == null ? "(insert link)": meeting[0].agenda_file_link}</Text>
-  </View>
-    
-      
 
-      <View style={styles.label}>
- <Image
-        source={require("../app/image.png")}
-        style={{ width: 50
-          ,height: 50}}
-        resizeMode="contain"
-      />
-<Text style={styles.value}>Notes: {meeting[0].entry_instructions}</Text>
-  </View>
-    
+
+        <View style={styles.label}>
+          <Text style={styles.value}>Notes: {meeting[0].entry_instructions}</Text>
+        </View>
+
       </View>
-      </View>
+    </View>
   );
 };
 const styles = StyleSheet.create({
@@ -192,47 +150,47 @@ const styles = StyleSheet.create({
     height: '100%',
   },
   container: {
-    marginTop:20,
+    marginTop: 20,
     padding: 20,
     alignItems: "flex-start",
-    
+
   }, meetingHeaderBlock: {
     marginTop: 30,
     backgroundColor: "#065395",
     padding: 15,
     borderRadius: 10,
-    position: 'relative', 
+    position: 'relative',
     zIndex: -9999,
   },
   header: {
     fontSize: 25,
     fontWeight: 'bold',
     marginBottom: 20,
-    marginTop:10,
-    marginLeft:'auto',
-    marginRight:"auto"
+    marginTop: 10,
+    marginLeft: 'auto',
+    marginRight: "auto"
   },
   label: {
     fontSize: 16,
     marginTop: 10,
     fontWeight: '600',
-    display:'flex',
-    flexDirection:'row',
-    alignItems:'center'
+    display: 'flex',
+    flexDirection: 'row',
+    alignItems: 'center'
   },
   value: {
     fontWeight: '400',
-    fontSize:20,
+    fontSize: 20,
   },
   /* PhotoshopPreview_Image 155 */
-meetingHeaderText: {
+  meetingHeaderText: {
     fontSize: 30,
     fontWeight: "bold",
     color: "#ffffff",
-     marginLeft:'auto',
-    marginRight:"auto",
-    marginTop:'auto',
-    marginBottom:'auto'
+    marginLeft: 'auto',
+    marginRight: "auto",
+    marginTop: 'auto',
+    marginBottom: 'auto'
   },
   description: {
     fontSize: 15,

@@ -6,15 +6,14 @@ import Button from "@/PTComponents/Button";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useNavigation, useRouter, useLocalSearchParams } from "expo-router";
 import Finger from "@/PTComponents/Finger";
-import { useFocusEffect } from "@react-navigation/native";
-
-const PORT = 8081;
 
 const Profile = () => {
   const router = useRouter();
   const [userId, setUserId] = useState("");
   const [profiles, setProfiles] = useState<any>([]);
   const [access, setAccess] = useState(false);
+  const [clubAccess, setClubAccess] = useState(false);
+  const [isOwnProfile, setIsOwnProfile] = useState(false);
 
   const local = useLocalSearchParams();
   const nav = useNavigation();
@@ -24,7 +23,6 @@ const Profile = () => {
       try {
         const storedUserId = await AsyncStorage.getItem("userId");
         if (storedUserId) {
-          console.log(storedUserId);
           setUserId(storedUserId);
         }
       } catch (error) {
@@ -43,9 +41,10 @@ const Profile = () => {
           );
           if (res.status == 200) {
             setAccess(true);
+            setClubAccess(true);
           }
         }
-      } catch (err:any) {
+      } catch (err: any) {
         console.error("Error With Club Access:", err);
         Alert.alert("Error", err);
       }
@@ -70,11 +69,12 @@ const Profile = () => {
     if (!userId && !profiles) return;
     nav.setOptions({ headerShown: true });
     if (userId == local.profileID.toString()) {
-      setAccess(true);
+      setIsOwnProfile(true);
       nav.setOptions({
         title: `Your Profile`,
       });
     } else {
+      setIsOwnProfile(false);
       nav.setOptions({
         title: `Profile of ${profiles.first_name} ${profiles.last_name}`,
       });
@@ -86,12 +86,12 @@ const Profile = () => {
       <ScrollView>
         <View style={styles.information}>
           <View style={styles.function}>
-            {access && (
+            {userId == local.profileID.toString() && (
               <Button
                 onPress={() =>
                   router.navigate({
                     pathname: "/profile/editProfile",
-                    params:{profileID:local.profileID}
+                    params: { profileID: local.profileID },
                   })
                 }
               >
@@ -108,17 +108,19 @@ const Profile = () => {
           <Text style={styles.infoText}>
             <Finger /> Email: {profiles.email}
           </Text>
-          {profiles.phone_number && (access || profiles.phone_private == 1) && (
-            <Text style={styles.infoText}>
-              <Finger /> Phone Number: {profiles.phone_number}
-            </Text>
-          )}
-          {profiles.address && (access || profiles.address_private == 1) && (
-            <Text style={styles.infoText}>
-              <Finger /> Address: {profiles.address}, {profiles.postcode}
-            </Text>
-          )}
-          
+          {profiles.phone_number &&
+            (isOwnProfile || profiles.phone_private == 0) && (
+              <Text style={styles.infoText}>
+                <Finger /> Phone Number: {profiles.phone_number}
+              </Text>
+            )}
+          {profiles.address &&
+            (isOwnProfile || profiles.address_private == 0) && (
+              <Text style={styles.infoText}>
+                <Finger /> Address: {profiles.address}, {profiles.postcode}
+              </Text>
+            )}
+
           {profiles.notes && (
             <Text style={styles.infoText}>
               <Finger /> Notes: {profiles.notes}
@@ -134,6 +136,37 @@ const Profile = () => {
             <Finger /> Join_Date:
             {new Date(profiles.join_date).toLocaleDateString()}
           </Text>
+
+          {clubAccess && profiles.paid_date && (
+            <View>
+              <Text style={styles.infoText}>
+                <Finger /> Paid Date:
+                {new Date(profiles.paid_date).toLocaleDateString()}
+              </Text>
+              <View style={styles.function}>
+                <Button
+                  onPress={() =>
+                    router.navigate({
+                      pathname: "/profile/feedback",
+                      params: { profileID: local.profileID },
+                    })
+                  }
+                >
+                  Feedback
+                </Button>
+                <Button
+                  onPress={() =>
+                    router.navigate({
+                      pathname: "/profile/requests",
+                      params: { profileID: local.profileID },
+                    })
+                  }
+                >
+                  Requests
+                </Button>
+              </View>
+            </View>
+          )}
         </View>
       </ScrollView>
     </View>
@@ -145,7 +178,7 @@ export default Profile;
 const styles = StyleSheet.create({
   background: {
     backgroundColor: "#F1F6F5",
-    height: "100%",
+    flex: 1,
   },
   title: {
     padding: 10,
@@ -170,7 +203,7 @@ const styles = StyleSheet.create({
   },
   function: {
     flexDirection: "row",
-    justifyContent: "flex-end",
+    justifyContent: "space-evenly",
     marginTop: 10,
   },
   titleText: {
