@@ -106,7 +106,7 @@ db.connect((err) => {
 });
 //token
 app.post("/users/verify-token", authenticateToken, (req, res) => {
-  console.log("ran")
+  //console.log("ran")
   res.json({ 
     valid: true, 
     user: req.user,
@@ -313,13 +313,20 @@ app.post("/user/member", (req, res) => {
 app.post("/users/login", async (req, res) => {
   const { website_login, password } = req.body;
 
+
   // SQL query with placeholders for Email and Password
   const loginQuery =
-    "SELECT member_logins.user_id, member_logins.website_login, member_logins.password, board_members.level_of_access FROM member_logins LEFT JOIN board_members ON member_logins.user_id=board_members.user_id WHERE website_login = ? AND password = ?";
+    "SELECT member_logins.user_id, member_logins.website_login, member_logins.password, board_members.level_of_access FROM member_logins LEFT JOIN board_members ON member_logins.user_id=board_members.user_id WHERE website_login = ?";
 
   db.query(loginQuery, [website_login, password], (err, result) => {
     const user = result[0];
-
+    //check if the password is encrypted in database otherwise it will use plaintext
+    if(/^$/.test(user.password)){
+      const isValidPassword = bcrypt.compare(password, user.password);
+      if (!isValidPassword) {
+        return res.status(401).json({ error: 'Invalid credentials' });
+      }
+    }
     const token = jwt.sign(
       { 
         userId: user.id, 
@@ -333,12 +340,6 @@ app.post("/users/login", async (req, res) => {
     if (err) {
       console.error("Database error:", err);
       return res.status(500).json({ message: "Database Error" });
-    }
-    if(/^$/.test(user.password)){
-      const isValidPassword = bcrypt.compare(password, user.password);
-      if (!isValidPassword) {
-      return res.status(401).json({ error: 'Invalid credentials' });
-      }
     }
 
     if (result.length > 0) {

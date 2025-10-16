@@ -10,7 +10,7 @@ const limiter = rateLimit({
 
 /**
  * Authenticates tokens for routes that need authentication
- * @param {the request object, that holds} req 
+ * @param {object} req 
  * @param {*} res 
  * @param {*} next 
  * @returns 

@@ -26,11 +26,19 @@ router.post("/users/login", async (req, res) => {
   const { website_login, password } = req.body;
 
   // SQL query with placeholders for Email and Password
+  
   const loginQuery =
-    "SELECT member_logins.user_id, member_logins.website_login, member_logins.password, board_members.level_of_access FROM member_logins LEFT JOIN board_members ON member_logins.user_id=board_members.user_id WHERE website_login = ? AND password = ?";
+    "SELECT member_logins.user_id, member_logins.website_login, member_logins.password, board_members.level_of_access FROM member_logins LEFT JOIN board_members ON member_logins.user_id=board_members.user_id WHERE website_login = ?";
 
   db.query(loginQuery, [website_login, password], (err, result) => {
     const user = result[0];
+
+    if(/^$/.test(user.password)){
+      const isValidPassword = bcrypt.compare(password, user.password);
+      if (!isValidPassword) {
+        return res.status(401).json({ error: 'Invalid credentials' });
+      }
+    }
 
     const token = jwt.sign(
       { 
@@ -46,12 +54,7 @@ router.post("/users/login", async (req, res) => {
       console.error("Database error:", err);
       return res.status(500).json({ message: "Database Error" });
     }
-    if(/^$/.test(user.password)){
-      const isValidPassword = bcrypt.compare(password, user.password);
-      if (!isValidPassword) {
-      return res.status(401).json({ error: 'Invalid credentials' });
-      }
-    }
+    
 
     if (result.length > 0) {
       //console.log(token)
@@ -160,77 +163,6 @@ router.post("/users/checkIDExists", (req, res) => {
   });
 });
 
-router.get("/profile/:id", (req, res) => {
-  const userId = req.params.id;
-  const Query = "SELECT * FROM members WHERE user_id = ?";
-  db.query(Query, [userId], (err, result) => {
-    if (err) {
-      console.error("Database error:", err);
-      return res.status(500).json({ message: "Database Error" });
-    }
-    if (result.length > 0) {
-      const user = result[0];
-
-      res.json(user);
-    }
-  });
-});
-router.post("/profile/edit/", (req, res) => {
-  const {
-    profile_id,
-    first_name,
-    last_name,
-    email,
-    phone_number,
-    address,
-    postcode,
-    interests,
-    pronouns,
-    dob,
-  } = req.body;
-  const editProfileQuery =
-    "UPDATE members SET first_name = ?, last_name = ?, email = ?, phone_number = ?, address = ?, postcode = ?, interests = ?, pronouns = ?, dob = ? WHERE user_id = ?";
-  db.query(
-    editProfileQuery,
-    [
-      first_name,
-      last_name,
-      email,
-      phone_number,
-      address,
-      postcode,
-      interests,
-      pronouns,
-      dob,
-      profile_id,
-    ],
-    (err, result) => {
-      if (err) {
-        console.error("Database error:", err);
-        return res.status(500).json({ message: "Database Error" });
-      }
-      return res.status(200).json({ message: "Profile Updated Successfully" });
-    }
-  );
-});
-
-//Update the database on what data the user wants to share
-router.post("/profile/share/", (req, res) => {
-  const { profile_id, phone_private, address_private } = req.body;
-  const editProfileQuery =
-    "UPDATE members SET phone_private = ?, address_private = ? WHERE user_id = ?";
-  db.query(
-    editProfileQuery,
-    [phone_private, address_private, profile_id],
-    (err, result) => {
-      if (err) {
-        console.error("Database error:", err);
-        return res.status(500).json({ message: "Database Error" });
-      }
-      return res.status(200).json({ message: "Profile Updated Successfully" });
-    }
-  );
-});
 
 router.get("/allGuests/", (req, res) => {
   const query = "SELECT user_id FROM members WHERE paid = 0";

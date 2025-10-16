@@ -9,6 +9,7 @@ const { db, connect } = require("./config/database");
 const { authenticateToken, requireRole, limiter } = require("./config/security");
  
 const userRoutes = require("./routes/users");
+const profileRoutes = require("./routes/profile");
 const boardRoutes = require("./routes/board");
 const projectRoutes = require("./routes/projects");
 const meetingRoutes = require("./routes/meeting");
@@ -27,13 +28,14 @@ app.use(limiter);
 // Routes
 //app.use("/users", authRoutes);
 app.use("/", userRoutes);
+app.use("/", profileRoutes);
 app.use("/", projectRoutes);
 app.use("/", meetingRoutes);
 app.use("/", boardRoutes);
 app.use("/", clubRoutes);
 
 app.post("/users/verify-token", authenticateToken, (req, res) => {
-  console.log("ran")
+  //console.log("ran")
   res.json({ 
     valid: true, 
     user: req.user,
@@ -43,55 +45,8 @@ app.post("/users/verify-token", authenticateToken, (req, res) => {
 
 
 // Additional routes that aren't sorted yet
-app.get("/member/:id", (req, res) => {
-  const userId = req.params.id;
-  const query = "SELECT * FROM `members` WHERE User_id = ?";
-
-  db.query(query, [userId], (err, results) => {
-    if (err) {
-      console.error("Database error:", err);
-      return res.status(500).json({ message: "Internal server error" });
-    }
-
-    if (results.length === 0) {
-      return res.status(201).json({ message: "User not found" });
-    }
-
-    res.status(200).json(results[0]);
-  });
-});
 
 
-app.get("/allGuests/", (req, res) => {
-  const query = "SELECT user_id FROM members WHERE guest = 1";
-
-  db.query(query, (err, results) => {
-    if (err) {
-      console.error("Database error:", err);
-      return res.status(500).json({ message: "Internal server error" });
-    }
-
-    if (results.length === 0) {
-      return res.status(404).json({ message: "User not found" });
-    }
-
-    res.json(results);
-  });
-});
-
-//Update payment info for a user
-app.post("/updatePayment", requireRole('club') ,(req, res) => {
-  const { user_id, paid, paid_date, guest } = req.body;
-  const query =
-    "UPDATE members SET paid = ?, paid_date = ?, guest = ? WHERE user_id = ?";
-  db.query(query, [paid, paid_date, guest, user_id], (err, result) => {
-    if (err) {
-      console.error("Database error:", err);
-      return res.status(500).json({ message: "Database Error" });
-    }
-    return res.status(200).json({ message: "Payment Updated Successfully" });
-  });
-});
 
 
 app.post("/send-messages", async (req, res) => {

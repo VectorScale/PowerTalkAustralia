@@ -1,5 +1,6 @@
 const express = require("express");
 const { db } = require("../config/database");
+const { authenticateToken, requireRole, limiter } = require("../config/security");
 
 const router = express.Router();
 
@@ -44,7 +45,7 @@ router.get("/association/boardMembers/:access", (req, res) => {
   });
 });
 //Update payment info for a user
-router.post("/updatePayment", (req, res) => {
+router.post("/updatePayment", requireRole('club'), (req, res) => {
   const { user_id, paid, paid_date } = req.body;
   const query =
     "UPDATE members SET paid = ?, paid_date = ?, guest = 0 WHERE user_id = ?";
@@ -57,7 +58,7 @@ router.post("/updatePayment", (req, res) => {
   });
 });
 
-router.post("/guest/increment", (req, res) => {
+router.post("/guest/increment", requireRole('club'), (req, res) => {
   const {user_id, guest} = req.body;
   const query =
     "UPDATE members SET guest = ? WHERE user_id = ?";

@@ -178,14 +178,6 @@ const ProfileScreen = () => {
     }
   };
 
-  const handleEnrolPress = async (meetingId) => {
-    try {
-      await AsyncStorage.setItem("meetingId", meetingId.toString());
-      router.push(`club/meetings/${meetingId}`);
-    } catch (error) {
-      console.error("Error saving meeting_id:", error);
-    }
-  };
 
   return (
     <View style={styles.container}>
@@ -240,15 +232,6 @@ const ProfileScreen = () => {
               <Text style={styles.meetingName}>Meeting : {meeting.name}</Text>
               <Text style={styles.meetingDate}>Meeting date : {date}</Text>
 
-              <TouchableOpacity 
-                style={styles.rightButton}
-                onPress={(e) => {
-                  e.stopPropagation(); // Prevent triggering the parent TouchableOpacity
-                  handleEnrolPress(meeting.id);
-                }}
-              >
-                <Text style={styles.buttonText}>Enrol</Text>
-              </TouchableOpacity>
             </TouchableOpacity>
           );
         })}
