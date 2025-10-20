@@ -626,12 +626,23 @@ app.get("/members", (req, res) => {
   });
 });
 
+app.get("/users", (req, res) => {
+  const query = "SELECT user_id FROM members";
+  db.query(query, (err, results) => {
+    res.json(results);
+  });
+});
+
 app.get("/association/boardMembers/:access", (req, res) => {
   const access = req.params.access;
   const levels = ['club','council','association'];
 
-  const query = `SELECT user_id FROM board_members WHERE level_of_access IN ('${levels.slice(access-1).join("','")}')`;
-  
+  var query = "";
+  if (access == 0){
+    query = `SELECT user_id, club_id FROM board_members`;
+  } else {
+    query = `SELECT user_id, club_id FROM board_members WHERE level_of_access = '${levels[access]}'`;
+  }
   db.query(query, (err, results) => {
     res.json(results);
   });
