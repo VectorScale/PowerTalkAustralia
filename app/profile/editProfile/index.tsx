@@ -43,7 +43,6 @@ const EditProfile = () => {
     address: "",
     postcode: "",
     note: "",
-    want_marketing: false,
   };
 
   const {
@@ -61,7 +60,6 @@ const EditProfile = () => {
   const [userId, setUserId] = useState("");
   const [profiles, setProfiles] = useState<any>([]);
 
-  const [marketing, setMarketing] = useState(false);
   const [showSharing, setSharing] = useState(false);
   const [hidePhone, setHidePhone] = useState(false);
   const [hideAddress, setHideAddress] = useState(false);
@@ -96,15 +94,6 @@ const EditProfile = () => {
       }
     })();
   }, []);
-
-  // prevent editing another user's profile
-  useEffect(() => {
-    if (!userId || !global.profileID) return;
-    if (userId !== global.profileID.toString()) {
-      Alert.alert("Permission denied", "You can only edit your own profile.");
-      router.replace({ pathname: "/profile/[profileID]", params: { profileID: global.profileID.toString() } });
-    }
-  }, [userId, global.profileID]);
 
   useEffect(() => {
     (async () => {
@@ -148,7 +137,6 @@ const EditProfile = () => {
         address: profiles.address || "",
         postcode: profiles.postcode || "",
         note: profiles.notes ?? profiles.note ?? "",
-        want_marketing: !!profiles.want_marketing,
       });
     }
   }, [profiles, reset]);
@@ -162,7 +150,6 @@ const EditProfile = () => {
       ...rest,
       notes: note,  
       profile_id,
-      marketing,
     };
 
     try {

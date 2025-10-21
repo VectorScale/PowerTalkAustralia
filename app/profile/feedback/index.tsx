@@ -1,7 +1,15 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 
-import { Text, View, Alert, StyleSheet, ScrollView, TextComponent, TouchableOpacity } from "react-native";
+import {
+  Text,
+  View,
+  Alert,
+  StyleSheet,
+  ScrollView,
+  TextComponent,
+  TouchableOpacity,
+} from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useNavigation, useRouter, useGlobalSearchParams } from "expo-router";
 import Finger from "@/PTComponents/Finger";
@@ -56,6 +64,7 @@ const Feedback = () => {
             process.env.EXPO_PUBLIC_IP
           }/projects/getFeedback/${global.profileID.toString()}`
         );
+        console.log(res.data);
 
         setFeedback(res.data);
         setLoaded(true);
@@ -66,15 +75,18 @@ const Feedback = () => {
     })();
   }, [clubAccess, loadFeedback]);
 
-  
   const handleDelete = async (id: number) => {
-
     try {
-      await axios.post(`${process.env.EXPO_PUBLIC_IP}/projects/deleteFeedback/${id}`);
+      await axios.post(
+        `${process.env.EXPO_PUBLIC_IP}/projects/deleteFeedback/${id}`
+      );
       Alert.alert("Success", "Feedback Deleted");
       setLoaded(false);
     } catch (error: any) {
-      Alert.alert("Error", error.response?.data?.message || "Feedback failed to delete");
+      Alert.alert(
+        "Error",
+        error.response?.data?.message || "Feedback failed to delete"
+      );
     }
   };
 
@@ -83,23 +95,32 @@ const Feedback = () => {
     <View style={styles.background}>
       <ScrollView>
         <View style={styles.information}>
-          {feedback.lenth>0?feedback.map((item: any, index: number) => (
-            <View style={styles.feedback} key={index}>
-              <View style={styles.feedbackInfo}>
-              <View style={styles.row}>
-                <Text>
-                  {item.project_number}: {item.project_title}
-                </Text>
-              </View>
-              <View style={styles.row}>
-                <Text>{item.feedback}</Text>
-              </View>
-              </View>
-              <TouchableOpacity onPress={()=>handleDelete(item.feedback_id)} style={styles.delete}>
-                <Text>Delete</Text>
-                </TouchableOpacity>
+          {feedback.length > 0 ? (
+            <View>
+              {feedback.map((item: any, index: number) => (
+                <View style={styles.feedback} key={index}>
+                  <View style={styles.feedbackInfo}>
+                    <View style={styles.row}>
+                      <Text style={styles.infoText}>
+                        Project #{item.project_number}: {item.project_title}
+                      </Text>
+                    </View>
+                    <View style={styles.row}>
+                      <Text style={styles.otherText}>{item.feedback}</Text>
+                    </View>
+                  </View>
+                  <TouchableOpacity
+                    onPress={() => handleDelete(item.feedback_id)}
+                    style={styles.delete}
+                  >
+                    <Text style={styles.otherText}>Delete</Text>
+                  </TouchableOpacity>
+                </View>
+              ))}
             </View>
-          )):(<Text>No Feedback</Text>)}
+          ) : (
+            <Text>No Feedback</Text>
+          )}
         </View>
       </ScrollView>
     </View>
@@ -113,33 +134,32 @@ const styles = StyleSheet.create({
     backgroundColor: "#F1F6F5",
     flex: 1,
   },
-  title: {
-    padding: 10,
-    backgroundColor: "#8A7D6A",
-  },
   information: {
     padding: 10,
     margin: 10,
     borderRadius: 10,
     backgroundColor: "#ffffff",
   },
-  feedback:{
-    flexDirection:"row",
-    marginBottom:5,
+  feedback: {
+    flexDirection: "row",
+    marginBottom: 5,
   },
   infoText: {
     fontSize: 20,
-    marginVertical: 5,
+    marginBottom:5,
+    color:"white"
+  },
+  otherText: {
+    color:"white",
   },
   row: {
     flex: 1,
     flexDirection: "row",
-    marginBottom:5,
   },
   feedbackInfo: {
     marginTop: 5,
     backgroundColor: "#8A7D6A",
-    padding: 15,
+    padding: 10,
     borderTopStartRadius: 10,
     borderBottomStartRadius: 10,
     flex: 4,
@@ -147,11 +167,10 @@ const styles = StyleSheet.create({
   delete: {
     marginTop: 5,
     backgroundColor: "#AFABA3",
-    padding: 15,
     borderTopEndRadius: 10,
     borderBottomEndRadius: 10,
     flex: 1,
-    alignItems:"center",
-    justifyContent:"center",
+    alignItems: "center",
+    justifyContent: "center",
   },
 });

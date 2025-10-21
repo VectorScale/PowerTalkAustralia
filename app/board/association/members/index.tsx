@@ -30,7 +30,7 @@ const ClubMembersPage = () => {
   const [sortedIds, setSorted] = useState<any>([]);
 
   const [filterShow, setFilter] = useState(false);
-  const [sortBy, setSortBy] = useState("Sort By");
+  const [sortBy, setSortBy] = useState("None");
 
   const [selectedClub, setSelectedClub] = useState("All Clubs");
   const [selectedClubId, setSelectedClubId] = useState(0);
@@ -59,6 +59,7 @@ const ClubMembersPage = () => {
       try {
         setSelectedClub("All Clubs");
         setSelectedClubId(0);
+        setSortBy("A-Z");
         if (level == 0) {
           const res = await axios.get(`${process.env.EXPO_PUBLIC_IP}/users`);
           setIds(res.data);
@@ -143,13 +144,14 @@ const ClubMembersPage = () => {
               `${process.env.EXPO_PUBLIC_IP}/clubAccess/${item.user_id}`
             );
             const position = result.data.position;
-            const MemberNames =
-              res.data[0].first_name + " " + res.data[0].last_name;
+            const firstName = res.data[0].first_name
+            const lastName = res.data[0].last_name;
             const id = res.data[0].user_id;
             const guest = res.data[0].guest;
             const PaidAmount = res.data[0].paid;
             return {
-              MemberNames,
+              firstName,
+              lastName,
               id,
               guest,
               PaidAmount,
@@ -159,10 +161,11 @@ const ClubMembersPage = () => {
         );
         let setObj = new Set<any>([]);
         MemberDetails.forEach((member: any) => {
-          if (member.MemberNames == "Jack Ryman") console.log(member);
           setObj.add(member);
         });
         setDetails(Array.from(setObj));
+        setSortBy("Z-A");
+        setSortBy("A-Z");
       } catch (error) {
         console.error("Error fetching member details:", error);
         Alert.alert("Error", "Failed to fetch Member Details");
@@ -175,34 +178,30 @@ const ClubMembersPage = () => {
   }, [memberDetails]);
 
 
-  /*
-  const sortedMembers = memberDetails.sort((a: any, b: any) => {
-    if (sortByName == "A-Z") {
-      const firstCompare = a.first_name.localeCompare(b.first_name);
-      if (firstCompare !== 0) {
-        return firstCompare;
-      } else {
-        return a.last_name.localeCompare(b.last_name);
+  useEffect(() => {
+    if (sortBy == "None") return;
+    const sortedMembers = memberDetails.sort((a: any, b: any) => {
+      console.log(a);
+      console.log(b);
+      if (sortBy == "Z-A") {
+        const firstCompare = a.firstName.localeCompare(b.firstName);
+        if (firstCompare !== 0) {
+          return firstCompare;
+        } else {
+          return a.lastName.localeCompare(b.lastName);
+        }
+      } else if (sortBy == "A-Z") {
+        const firstCompare = b.firstName.localeCompare(a.firstName);
+        if (firstCompare !== 0) {
+          return firstCompare;
+        } else {
+          return b.lastName.localeCompare(a.lastName);
+        }
       }
-    }
-  });
+    });
+    setDetails(sortedMembers);
+  }, [sortBy]);
 
-  const unsortedMembers = memberDetails.sort((a: any, b: any) => {
-    if (sortByName == "Z-A") {
-      const firstCompare = b.first_name.localeCompare(a.first_name);
-      if (firstCompare !== 0) {
-        return firstCompare;
-      } else {
-        return b.last_name.localeCompare(a.last_name);
-      }
-    }
-  });
-
-  const members = names.filter(
-    (n: any) => n.guest === 0 && n.position == undefined
-  );
-
-  */
   return (
     <View style={styles.container}>
       <ScrollView style={styles.content}>
@@ -214,6 +213,7 @@ const ClubMembersPage = () => {
           onPressAssoc={() => setLevel(3)}
           level={level}
         />
+        <Text>{sortBy}</Text>
         <FilterButton onFilter={() => setFilter(!filterShow)} />
         {filterShow && (<View>
           <Picker
@@ -249,7 +249,6 @@ const ClubMembersPage = () => {
             style={styles.picker}
             onValueChange={(itemValue) => setSortBy(itemValue)}
           >
-            <Picker.Item label="Sort By" value="None" />
             <Picker.Item label="Last Name A-Z" value="A-Z" />
             <Picker.Item label="Last Name Z-A" value="Z-A" />
             <Picker.Item label="Join Date Newest" value="None" />
@@ -270,7 +269,7 @@ const ClubMembersPage = () => {
               }
             >
               <Text style={styles.meetingName}>
-                {member.MemberNames}
+                {member.firstName} {member.lastName}
               </Text>
             </TouchableOpacity>
             <View style={styles.memberStatus}>
