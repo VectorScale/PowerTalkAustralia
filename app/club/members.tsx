@@ -21,6 +21,7 @@ import NoAuthentication from "@/PTComponents/NoAuth";
 const ClubMembersPage = () => {
   const router = useRouter();
 
+  const [members, setMembers] = useState<any>([]);
   const [memberdetails, setDetails] = useState<any>([]);
   const [sortByName, setSortByName] = useState("A-Z");
   const [selectedClub, setSelectedClub] = useState("All Clubs");
@@ -28,7 +29,7 @@ const ClubMembersPage = () => {
   const [ids, setids] = useState<any>([]);
 
   const [filterShow, setFilterShow] = useState(false);
-  const [selectedClubId, setSelectedClubId] = useState(null);
+  const [selectedClubId, setSelectedClubId] = useState(0);
 
   const [userId, setUserId] = useState("");
   const nav = useNavigation();
@@ -42,7 +43,6 @@ const ClubMembersPage = () => {
       try {
         const storedUserId = await AsyncStorage.getItem("userId");
         if (storedUserId) {
-          console.log(storedUserId);
           setUserId(storedUserId);
         }
       } catch (error) {
@@ -51,23 +51,47 @@ const ClubMembersPage = () => {
       }
     })();
   }, []);
+
   useEffect(() => {
     (async () => {
       try {
         const res = await axios.get(`${process.env.EXPO_PUBLIC_IP}/members`);
-
-        setDetails(res.data.user);
+        setMembers(res.data);
       } catch (error) {
         console.error("Error fetching user or club data:", error);
-        Alert.alert("Error", "Failed to fetch user or club data");
+        Alert.alert("Error", "Failed to fetch user Ids");
       }
     })();
   }, []);
 
   useEffect(() => {
+    if (!members) return;
+    (async () => {
+      try {
+        const MemberDetails = await Promise.all(
+          members.map(async (item: any) => {
+            const res = await axios.get(
+              `${process.env.EXPO_PUBLIC_IP}/member/${item.user_id}`
+            );
+            return res.data;
+          })
+        );
+        console.log(MemberDetails);
+        setDetails(MemberDetails);
+      } catch (error) {
+        console.error("Error fetching user details:", error);
+        Alert.alert("Error", "Failed to fetch user details");
+      }
+    })();
+  }, [members]);
+
+  useEffect(() => {
     axios
       .get(`${process.env.EXPO_PUBLIC_IP}/clubs`)
-      .then((res) => setClubs(res.data))
+      .then((res) => {
+        setClubs(res.data);
+        console.log(res.data);
+      })
       .catch((err) => {
         console.error("Error fetching clubs:", err);
         Alert.alert("Error", "Failed to fetch clubs");
@@ -78,21 +102,45 @@ const ClubMembersPage = () => {
     if (!selectedClubId) return;
     axios
       .get(`${process.env.EXPO_PUBLIC_IP}/clubBoard/${selectedClubId}`)
-      .then((res) => setids(res.data))
+      .then((res) => {
+        setids(res.data);
+        console.log(res.data);
+      })
       .catch((err) => {
         console.error("Error fetching clubs:", err);
         Alert.alert("Error", "Failed to fetch clubs");
       });
   }, [selectedClubId]);
 
+  useEffect(() => {
+    const sortedMembers = memberdetails.sort((a: any, b: any) => {
+      console.log(a);
+      console.log(b);
+      if (sortByName == "Z-A") {
+        const firstCompare = a.first_name.localeCompare(b.first_name);
+        if (firstCompare !== 0) {
+          return firstCompare;
+        } else {
+          return a.last_name.localeCompare(b.last_name);
+        }
+      } else if (sortByName == "A-Z") {
+        const firstCompare = b.first_name.localeCompare(a.first_name);
+        if (firstCompare !== 0) {
+          return firstCompare;
+        } else {
+          return b.last_name.localeCompare(a.last_name);
+        }
+      }
+    });
+    setDetails(sortedMembers);
+  }, [sortByName]);
+
   return (
     <View style={styles.container}>
       {userId != null && (
         <ScrollView style={styles.content}>
           {/* Sorting Dropdowns */}
-          <FilterButton
-            onFilter={() => setFilterShow(!filterShow)}
-          />
+          <FilterButton onFilter={() => setFilterShow(!filterShow)} />
           {filterShow && (
             <View style={styles.sortingRow}>
               <Picker
@@ -109,6 +157,16 @@ const ClubMembersPage = () => {
                 style={styles.picker}
                 onValueChange={(itemValue, itemIndex) => {
                   setSelectedClub(itemValue);
+                  if (itemValue == "All Clubs") {
+                    setSelectedClubId(0);
+                  } else {
+                    const clubObj = clubs.find(
+                      (club: any) => club.club_name === itemValue
+                    );
+                    if (clubObj) {
+                      setSelectedClubId(clubObj.club_id);
+                    }
+                  }
                 }}
               >
                 <Picker.Item label="All Clubs" value="All Clubs" />
@@ -116,7 +174,7 @@ const ClubMembersPage = () => {
                   <Picker.Item
                     key={club.club_id}
                     label={club.club_name}
-                    value={club.club_id}
+                    value={club.club_name}
                   />
                 ))}
               </Picker>

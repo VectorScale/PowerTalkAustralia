@@ -176,10 +176,10 @@ app.post("/users/checkMonthlyMembers", (req, res) => {
   var yyyy = today.getFullYear();
 
   const monthlyMembersQuery =
-    "SELECT COALESCE(MAX(Substring(website_login, 7)+1), 0) as 'monthlyMembers' FROM member_logins WHERE SUBSTRING(website_login, 1, 6) = " +
+    "select max(cast(Substring(website_login, 7)as decimal))+1 as 'monthlyMembers' from member_logins where SUBSTRING(website_login, 1, 6) like " +
     yyyy +
     mm +
-    " ORDER BY website_login DESC LIMIT 1";
+    " Order by website_login DESC LIMIT 1";
 
   db.query(monthlyMembersQuery, (err, result) => {
     console.log(result)
@@ -238,12 +238,10 @@ app.post("/profile/edit/", (req, res) => {
     phone_number,
     address,
     postcode,
-    interests,
-    pronouns,
-    dob,
+    note,
   } = req.body;
   const editProfileQuery =
-    "UPDATE members SET first_name = ?, last_name = ?, email = ?, phone_number = ?, address = ?, postcode = ?, interests = ?, pronouns = ?, dob = ? WHERE user_id = ?";
+    "UPDATE members SET first_name = ?, last_name = ?, email = ?, phone_number = ?, address = ?, postcode = ?, notes = ? WHERE user_id = ?";
   db.query(
     editProfileQuery,
     [
@@ -253,9 +251,7 @@ app.post("/profile/edit/", (req, res) => {
       phone_number,
       address,
       postcode,
-      interests,
-      pronouns,
-      dob,
+      note,
       profile_id,
     ],
     (err, result) => {
@@ -427,6 +423,43 @@ app.get("/allClubs/", (req, res) => {
     res.json(results);
   });
 });
+
+
+app.get("/allCouncils/", (req, res) => {
+  const query = "SELECT * FROM council";
+
+  db.query(query, (err, results) => {
+    if (err) {
+      console.error("Database error:", err);
+      return res.status(500).json({ message: "Internal server error" });
+    }
+
+    if (results.length === 0) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.json(results);
+  });
+});
+
+app.get("/councilClubs/:id", (req, res) => {
+  const id = req.params.id
+  const query = "SELECT * FROM club where council_id = ?";
+
+  db.query(query,[id], (err, results) => {
+    if (err) {
+      console.error("Database error:", err);
+      return res.status(500).json({ message: "Internal server error" });
+    }
+
+    if (results.length === 0) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.json(results);
+  });
+});
+
 app.get("/club/:id", (req, res) => {
   const clubId = req.params.id;
   const query = "SELECT club_name FROM club WHERE club_id = ?";
@@ -604,6 +637,7 @@ app.get("/clubAccess/:id", (req, res) => {
 
 app.get("/clubBoard/:id", (req, res) => {
   const clubId = req.params.id;
+  console.log(clubId);
   
   const query = "SELECT User_id FROM `member's club` WHERE Club_id = ?";
 
@@ -613,8 +647,10 @@ app.get("/clubBoard/:id", (req, res) => {
       return res.status(500).json({ message: "Internal server error" });
     }
 
+    console.log(results);
+
     if (results.length === 0) {
-      return res.status(404).json({ message: "User not found" });
+      return res.status(201).json({ message: "User not found" });
     }
 
     res.json(results);
@@ -650,6 +686,24 @@ app.get("/clubBoardMembers/:id", (req, res) => {
     }
 
     if (results.length === 0) {
+      console.log("Tesst");
+      return res.status(201).json({ message: "User not found" });
+    }
+
+    res.json(results);
+  });
+});
+
+app.get("/allClubBoardMembers/", (req, res) => {
+  const query = "SELECT * FROM board_members";
+
+  db.query(query, (err, results) => {
+    if (err) {
+      console.error("Database error:", err);
+      return res.status(500).json({ message: "Internal server error" });
+    }
+
+    if (results.length === 0) {
       return res.status(404).json({ message: "User not found" });
     }
 
@@ -664,12 +718,23 @@ app.get("/members", (req, res) => {
   });
 });
 
+app.get("/users", (req, res) => {
+  const query = "SELECT user_id FROM members";
+  db.query(query, (err, results) => {
+    res.json(results);
+  });
+});
+
 app.get("/association/boardMembers/:access", (req, res) => {
   const access = req.params.access;
   const levels = ['club','council','association'];
 
-  const query = `SELECT user_id FROM board_members WHERE level_of_access IN ('${levels.slice(access-1).join("','")}')`;
-  
+  var query = "";
+  if (access == 0){
+    query = `SELECT user_id, club_id FROM board_members`;
+  } else {
+    query = `SELECT user_id, club_id FROM board_members WHERE level_of_access = '${levels[access]}'`;
+  }
   db.query(query, (err, results) => {
     res.json(results);
   });
@@ -705,6 +770,21 @@ app.post("/BoardMember", (req, res) => {
   const query =
     "INSERT INTO `member's club` (User_id, Club_id, join_date) VALUES (?, ?, ?)";
   db.query(query, [User_id, Club_id, join_date], (err, result) => {
+    if (err) {
+      console.error("Database error:", err);
+      return res.status(500).json({ message: "Database Error" });
+    }
+    return res.status(200).json({ message: "New Member Added Successfully" });
+  });
+});
+
+app.post("/editBoardMember", (req, res) => {
+const {user_id, position, start, end} = req.body;
+
+  const query =
+    "UPDATE `board_members` SET position = ?, term_start = ?, term_end = ? WHERE user_id = ?";
+
+  db.query(query, [position, start, end || null, user_id], (err, result) => {
     if (err) {
       console.error("Database error:", err);
       return res.status(500).json({ message: "Database Error" });

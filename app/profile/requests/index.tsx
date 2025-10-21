@@ -88,13 +88,13 @@ const Feedback = () => {
             <View style={styles.feedback} key={index}>
               <View style={styles.feedbackInfo}>
               <View style={styles.row}>
-                <Text>
-                  {item.project_number}: {item.project_title}
+                <Text style={styles.infoText}>
+                  Project #{item.project_number}: {item.project_title}
                 </Text>
               </View>
               </View>
               <TouchableOpacity onPress={()=>handleComplete(item.project_id, item.request_id)} style={styles.delete}>
-                <Text>Sign Off</Text>
+                <Text style={styles.otherText}>Sign Off</Text>
                 </TouchableOpacity>
             </View>
           )):(<Text>No Requests</Text>)}
@@ -111,10 +111,6 @@ const styles = StyleSheet.create({
     backgroundColor: "#F1F6F5",
     flex: 1,
   },
-  title: {
-    padding: 10,
-    backgroundColor: "#8A7D6A",
-  },
   information: {
     padding: 10,
     margin: 10,
@@ -123,11 +119,13 @@ const styles = StyleSheet.create({
   },
   feedback:{
     flexDirection:"row",
-    marginBottom:5,
   },
   infoText: {
     fontSize: 20,
-    marginVertical: 5,
+    color:"white"
+  },
+  otherText: {
+    color:"white",
   },
   row: {
     flex: 1,
@@ -141,6 +139,7 @@ const styles = StyleSheet.create({
     borderTopStartRadius: 10,
     borderBottomStartRadius: 10,
     flex: 4,
+    justifyContent:"center",
   },
   delete: {
     marginTop: 5,

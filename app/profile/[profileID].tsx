@@ -11,7 +11,6 @@ const Profile = () => {
   const router = useRouter();
   const [userId, setUserId] = useState("");
   const [profiles, setProfiles] = useState<any>([]);
-  const [access, setAccess] = useState(false);
   const [clubAccess, setClubAccess] = useState(false);
   const [isOwnProfile, setIsOwnProfile] = useState(false);
 
@@ -40,7 +39,6 @@ const Profile = () => {
             `${process.env.EXPO_PUBLIC_IP}/clubaccess/${userId}`
           );
           if (res.status == 200) {
-            setAccess(true);
             setClubAccess(true);
           }
         }
@@ -86,6 +84,7 @@ const Profile = () => {
       <ScrollView>
         <View style={styles.information}>
           <View style={styles.function}>
+            <View style={{ flex: 1 }}></View>
             {userId == local.profileID.toString() && (
               <Button
                 onPress={() =>
@@ -137,12 +136,14 @@ const Profile = () => {
             {new Date(profiles.join_date).toLocaleDateString()}
           </Text>
 
-          {clubAccess && profiles.paid_date && (
+          {clubAccess && (
             <View>
-              <Text style={styles.infoText}>
-                <Finger /> Paid Date:
-                {new Date(profiles.paid_date).toLocaleDateString()}
-              </Text>
+              {profiles.paid_date && (
+                <Text style={styles.infoText}>
+                  <Finger /> Paid Date:
+                  {new Date(profiles.paid_date).toLocaleDateString()}
+                </Text>
+              )}
               <View style={styles.function}>
                 <Button
                   onPress={() =>

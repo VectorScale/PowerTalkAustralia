@@ -30,13 +30,14 @@ const ClubMembersPage = () => {
   const [sortedIds, setSorted] = useState<any>([]);
 
   const [filterShow, setFilter] = useState(false);
-  const [sortBy, setSortBy] = useState("Sort By");
+  const [sortBy, setSortBy] = useState("None");
 
   const [selectedClub, setSelectedClub] = useState("All Clubs");
   const [selectedClubId, setSelectedClubId] = useState(0);
 
   const [level, setLevel] = useState(0);
   const levelsReadable = ["Members", "Board", "Council", "Association"];
+
 
   useEffect(() => {
     (async () => {
@@ -56,14 +57,15 @@ const ClubMembersPage = () => {
     (async () => {
       nav.setOptions({ title: `${levelsReadable[level]} (0)` });
       try {
-          setSelectedClub("All Clubs");
-          setSelectedClubId(0);
+        setSelectedClub("All Clubs");
+        setSelectedClubId(0);
+        setSortBy("A-Z");
         if (level == 0) {
-          const res = await axios.get(`${process.env.EXPO_PUBLIC_IP}/members`);
+          const res = await axios.get(`${process.env.EXPO_PUBLIC_IP}/users`);
           setIds(res.data);
         } else {
           const res = await axios.get(
-            `${process.env.EXPO_PUBLIC_IP}/association/boardMembers/${level}`
+            `${process.env.EXPO_PUBLIC_IP}/association/boardMembers/${level - 1}`
           );
           setIds(res.data);
         }
@@ -79,17 +81,22 @@ const ClubMembersPage = () => {
   }, [ids]);
 
   useEffect(() => {
-    axios
-      .get(`${process.env.EXPO_PUBLIC_IP}/clubs`)
-      .then((res) => setClubs(res.data))
-      .catch((err) => {
-        console.error("Error fetching clubs:", err);
-        Alert.alert("Error", "Failed to fetch Clubs");
-      });
+    (async () => {
+      try {
+        axios
+          .get(`${process.env.EXPO_PUBLIC_IP}/clubs`)
+          .then((res) => {
+            setClubs(res.data);
+          })
+      } catch (error) {
+        console.error("Error fetching member details:", error);
+        Alert.alert("Error", "Failed to fetch Club Sorting");
+      }
+    })();
   }, []);
 
   useEffect(() => {
-    if (!selectedClubId) return;
+    if (!selectedClubId) { setSorted(ids); return; }
     (async () => {
       try {
         await axios
@@ -103,15 +110,26 @@ const ClubMembersPage = () => {
   }, [selectedClubId]);
 
   useEffect(() => {
-    setSorted(
-      ids.filter((item: any) => {
-        let allow = false;
-        clubIds.forEach((club: any) => {
-          if (item.user_id == club.User_id) allow = true;
-        });
-        return allow;
-      })
-    );
+    if (level > 0) {
+      setSorted(
+        ids.filter((item: any) => {
+          let allow = false;
+            if (item.club_id == selectedClubId) allow = true;
+          return allow;
+        })
+      );
+
+    } else {
+      setSorted(
+        ids.filter((item: any) => {
+          let allow = false;
+          clubIds.forEach((club: any) => {
+            if (item.user_id == club.User_id) allow = true;
+          });
+          return allow;
+        })
+      );
+    }
   }, [clubIds]);
 
   useEffect(() => {
@@ -126,13 +144,14 @@ const ClubMembersPage = () => {
               `${process.env.EXPO_PUBLIC_IP}/clubAccess/${item.user_id}`
             );
             const position = result.data.position;
-            const MemberNames =
-              res.data[0].first_name + " " + res.data[0].last_name;
+            const firstName = res.data[0].first_name
+            const lastName = res.data[0].last_name;
             const id = res.data[0].user_id;
             const guest = res.data[0].guest;
             const PaidAmount = res.data[0].paid;
             return {
-              MemberNames,
+              firstName,
+              lastName,
               id,
               guest,
               PaidAmount,
@@ -140,7 +159,13 @@ const ClubMembersPage = () => {
             };
           })
         );
-        setDetails(MemberDetails);
+        let setObj = new Set<any>([]);
+        MemberDetails.forEach((member: any) => {
+          setObj.add(member);
+        });
+        setDetails(Array.from(setObj));
+        setSortBy("Z-A");
+        setSortBy("A-Z");
       } catch (error) {
         console.error("Error fetching member details:", error);
         Alert.alert("Error", "Failed to fetch Member Details");
@@ -149,39 +174,34 @@ const ClubMembersPage = () => {
   }, [sortedIds]);
 
   useEffect(() => {
-    
-      nav.setOptions({ title: `${levelsReadable[level]} (${memberDetails.length})` });
+    nav.setOptions({ title: `${levelsReadable[level]} (${memberDetails.length})` });
   }, [memberDetails]);
 
 
-  /*
-  const sortedMembers = memberDetails.sort((a: any, b: any) => {
-    if (sortByName == "A-Z") {
-      const firstCompare = a.first_name.localeCompare(b.first_name);
-      if (firstCompare !== 0) {
-        return firstCompare;
-      } else {
-        return a.last_name.localeCompare(b.last_name);
+  useEffect(() => {
+    if (sortBy == "None") return;
+    const sortedMembers = memberDetails.sort((a: any, b: any) => {
+      console.log(a);
+      console.log(b);
+      if (sortBy == "Z-A") {
+        const firstCompare = a.firstName.localeCompare(b.firstName);
+        if (firstCompare !== 0) {
+          return firstCompare;
+        } else {
+          return a.lastName.localeCompare(b.lastName);
+        }
+      } else if (sortBy == "A-Z") {
+        const firstCompare = b.firstName.localeCompare(a.firstName);
+        if (firstCompare !== 0) {
+          return firstCompare;
+        } else {
+          return b.lastName.localeCompare(a.lastName);
+        }
       }
-    }
-  });
+    });
+    setDetails(sortedMembers);
+  }, [sortBy]);
 
-  const unsortedMembers = memberDetails.sort((a: any, b: any) => {
-    if (sortByName == "Z-A") {
-      const firstCompare = b.first_name.localeCompare(a.first_name);
-      if (firstCompare !== 0) {
-        return firstCompare;
-      } else {
-        return b.last_name.localeCompare(a.last_name);
-      }
-    }
-  });
-
-  const members = names.filter(
-    (n: any) => n.guest === 0 && n.position == undefined
-  );
-
-  */
   return (
     <View style={styles.container}>
       <ScrollView style={styles.content}>
@@ -191,53 +211,77 @@ const ClubMembersPage = () => {
           onPressBoard={() => setLevel(1)}
           onPressCouncil={() => setLevel(2)}
           onPressAssoc={() => setLevel(3)}
+          level={level}
         />
-        <FilterButton onFilter={()=>setFilter(!filterShow)}/>
+        <Text>{sortBy}</Text>
+        <FilterButton onFilter={() => setFilter(!filterShow)} />
         {filterShow && (<View>
-            <Picker
-              selectedValue={selectedClub}
-              style={styles.picker}
-              onValueChange={(itemValue, itemIndex) => {
-                setSelectedClubId(Number(itemValue));
-              }}
-            >
-              <Picker.Item label="All Clubs" value="All Clubs" />
-              {clubs.map((club: any) => (
-                <Picker.Item
-                  key={club.club_id}
-                  label={club.club_name}
-                  value={club.club_id}
-                />
-              ))}
-            </Picker>
+          <Picker
+            selectedValue={selectedClub}
+            style={styles.picker}
+            onValueChange={(itemValue, itemIndex) => {
+              setSelectedClub(itemValue);
+              if (itemValue == "All Clubs") {
+                setSelectedClubId(0);
+              } else {
+
+                const clubObj = clubs.find(
+                  (club: any) => club.club_name === itemValue
+                );
+                if (clubObj) {
+                  setSelectedClubId(clubObj.club_id);
+                }
+              }
+            }
+            }
+          >
+            <Picker.Item label="All Clubs" value={"All Clubs"} />
+            {clubs.map((club: any) => (
+              <Picker.Item
+                key={club.club_id}
+                label={club.club_name}
+                value={club.club_name}
+              />
+            ))}
+          </Picker>
           <Picker
             selectedValue={sortBy}
             style={styles.picker}
             onValueChange={(itemValue) => setSortBy(itemValue)}
           >
-            <Picker.Item label="Sort By" value="None"/>
-            <Picker.Item label="Last Name A-Z" value="A-Z"/>
-            <Picker.Item label="Last Name Z-A" value="Z-A"/>
-            <Picker.Item label="Join Date Newest" value="None"/>
-            <Picker.Item label="Join Date Oldest" value="None"/>
+            <Picker.Item label="Last Name A-Z" value="A-Z" />
+            <Picker.Item label="Last Name Z-A" value="Z-A" />
+            <Picker.Item label="Join Date Newest" value="None" />
+            <Picker.Item label="Join Date Oldest" value="None" />
           </Picker>
         </View>)}
 
         {memberDetails.map((member: any, index: any) => (
-          <TouchableOpacity
-            key={index}
-            style={styles.meetingBlock}
-            onPress={() =>
-              router.navigate({
-                pathname: "/profile/[profileID]",
-                params: { profileID: member.id },
-              })
-            }
-          >
-            <Text style={styles.meetingName}>
-              {member.MemberNames} <Text>Paid: {member.PaidAmount}</Text>
-            </Text>
-          </TouchableOpacity>
+          <View style={styles.memberBlock}>
+            <TouchableOpacity
+              key={index}
+              style={styles.memberInfo}
+              onPress={() =>
+                router.navigate({
+                  pathname: "/profile/[profileID]",
+                  params: { profileID: member.id },
+                })
+              }
+            >
+              <Text style={styles.meetingName}>
+                {member.firstName} {member.lastName}
+              </Text>
+            </TouchableOpacity>
+            <View style={styles.memberStatus}>
+              {member.position ? (
+                <Text style={styles.meetingName}>
+                  {member.position}
+                </Text>) : (
+                <Text style={styles.meetingName}>
+                  {member.PaidAmount == 1 ? "Paid" : "Unpaid"}
+                </Text>)}
+            </View>
+          </View>
         ))}
       </ScrollView>
       <BottomNav
@@ -269,7 +313,7 @@ const styles = StyleSheet.create({
   picker: {
     flex: 1,
     backgroundColor: "#F1F6F5",
-    marginBottom:5,
+    marginBottom: 5,
   },
   content: {
     paddingHorizontal: 20,
@@ -280,11 +324,26 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     marginTop: 20,
   },
-  meetingBlock: {
+  memberBlock: {
+    flex: 1,
+    flexDirection: "row",
+  },
+  memberInfo: {
+    flex: 5,
     marginTop: 15,
     backgroundColor: "#8A7D6A",
     padding: 15,
     borderRadius: 10,
+    justifyContent: "center",
+  },
+  memberStatus: {
+    flex: 2,
+    marginTop: 15,
+    backgroundColor: "#AFABA3",
+    padding: 15,
+    borderRadius: 10,
+    justifyContent: "center",
+    alignItems: "center"
   },
   meetingName: {
     fontSize: 16,
