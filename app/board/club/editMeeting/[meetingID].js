@@ -127,7 +127,7 @@ const EditForm = () => {
                 placeholder="Meeting Name"
                 value={name}
 
-                onValueChange={setname}
+                onChangeText={setname}
               />
 
             </View>

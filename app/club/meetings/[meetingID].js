@@ -80,9 +80,15 @@ const MeetingDetails = () => {
         <Text style={styles.value}>
           <Finger /> {meeting[0].meeting_place}
         </Text>
+        {meeting[0].arrival_time && <Text style={styles.value}>
+          <Finger /> Arrive at {meeting[0].arrival_time}
+        </Text>}
         <Text style={styles.value}>
           <Finger /> {meeting[0].meeting_time}
         </Text>
+        {meeting[0].entry_instructions && <Text style={styles.value}>
+          <Finger /> {meeting[0].entry_instructions}
+        </Text>}
       </View>
     </View>
   );
