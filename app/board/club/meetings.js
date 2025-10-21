@@ -12,7 +12,7 @@ import Pencil from "@/PTComponents/Pencil";
 import FilterButton from "@/PTComponents/FilterButton";
 import { Picker } from "@react-native-picker/picker";
 
-import { useNavigation } from "@react-navigation/native";
+import { useIsFocused, useNavigation } from "@react-navigation/native";
 import { useRouter } from "expo-router";
 
 import axios from "axios";
@@ -23,6 +23,8 @@ const ProfileScreen = () => {
   const nav = useNavigation();
 
   const [userId, setUserId] = useState("");
+  const [clubId, setClubId] = useState("");
+
   const [clubs, setClubs] = useState([]);
   const [clubMeetings, setClubwithMeetings] = useState([]);
   const [filteredMeetings, setFiltered] = useState([]);
@@ -55,73 +57,48 @@ const ProfileScreen = () => {
   });
 
   useEffect(() => {
-    if (userId != "") return;
     (async () => {
       try {
-        // Step 1: Get club list from user info
-        const { data } = await axios.get(
-          `${process.env.EXPO_PUBLIC_IP}/allClubs/`
-        );
-        const allList = data || [];
-        setClubs(allList);
+        const storedClubId = await AsyncStorage.getItem("clubId");
+        if (storedClubId) {
+          setClubId(storedClubId);
+        }
       } catch (error) {
-        console.error("Error fetching all club data:", error);
-        Alert.alert("Error", "Failed to fetch all clubs");
+        console.error("Error fetching club:", error);
+        Alert.alert("Error", "Failed to load Club");
       }
     })();
-  }, [userId]);
+  }, []);
 
   useEffect(() => {
-    if (!clubs) return;
+    if (!clubId) return;
     (async () => {
       try {
-        // Step 2: Fetch names for all clubs
-        const clubMeetingDetails = await Promise.all(
-          clubs.map(async (item) => {
-            const res = await axios.get(
-              `${process.env.EXPO_PUBLIC_IP}/club/${item.club_id}`
-            );
-            const clubNames = res.data.club_name;
-
-            const resMeet = await axios.get(
-              `${process.env.EXPO_PUBLIC_IP}/upcomingMeetings/${item.club_id}`
-            );
-            const MeetNames = resMeet.data;
-            if (resMeet.status != 200) return null;
-            return {
-              clubNames,
-              MeetNames,
-            };
-          })
+        const resMeet = await axios.get(
+          `${process.env.EXPO_PUBLIC_IP}/upcomingMeetings/${clubId}`
         );
+        const MeetNames = resMeet.data;
 
-        const flattenedMeetings = clubMeetingDetails.flatMap((club) => {
-          if (club == null) {
-            return [];
-          } else {
-            const flatClub = club.MeetNames.map((meeting) => ({
-              club: club.clubNames,
-              name: meeting.meeting_name,
-              date: meeting.meeting_date,
-              id: meeting.meeting_id,
-            }));
+        const res = await axios.get(
+          `${process.env.EXPO_PUBLIC_IP}/club/${clubId}`
+        );
+        const ClubName = res.data;
+        console.log(MeetNames);
 
-            return flatClub;
-          }
-        });
-
-        setClubwithMeetings(flattenedMeetings);
+        setClubwithMeetings(MeetNames);
+        setClubs(ClubName);
       } catch (error) {
         console.error("Error fetching user or club data:", error);
         Alert.alert("Error", "Failed to fetch user or club data");
       }
     })();
-  }, [clubs]);
+  }, [clubId, useIsFocused()]);
 
   useEffect(() => {
     console.log(clubMeetings);
+    if (clubMeetings.message) return;
     const allYears = clubMeetings.map((meeting) =>
-      new Date(meeting.date).getFullYear().toString()
+      new Date(meeting.meeting_date).getFullYear().toString()
     );
     const uniquesyears = new Set([]);
     allYears.forEach((year) => {
@@ -130,7 +107,7 @@ const ProfileScreen = () => {
     setYears(Array.from(uniquesyears));
 
     const allMonths = clubMeetings.map((meeting) =>
-      new Date(meeting.date).toLocaleString("default", { month: "long" })
+      new Date(meeting.meeting_date).toLocaleString("default", { month: "long" })
     );
     setMonths(Array.from(new Set(allMonths)));
   }, [clubMeetings]);
@@ -139,12 +116,14 @@ const ProfileScreen = () => {
     setSelectedMonth(months[0]);
     setSelectedYear(years[0]);
   }, [months, years]);
+
   useEffect(() => {
     if (!clubs) return;
+    if (clubMeetings.message) return;
     (async () => {
       setFiltered(
         clubMeetings.filter((meeting) => {
-          const meetingDate = new Date(meeting.date);
+          const meetingDate = new Date(meeting.meeting_date);
           const meetingMonth = meetingDate.toLocaleString("default", {
             month: "long",
           });
@@ -155,7 +134,7 @@ const ProfileScreen = () => {
         })
       );
     })();
-  }, [clubs, selectedMonth, selectedYear]);
+  }, [clubs, clubMeetings, selectedMonth, selectedYear]);
 
   return (
     <View style={styles.container}>
@@ -194,28 +173,44 @@ const ProfileScreen = () => {
         )}
 
         {/* Meeting Buttons */}
-        {filteredMeetings.map((meeting, index) => {
-          const date = new Date(meeting.date).toISOString().split("T")[0];
-          return (
-            <View key={meeting.id} style={styles.row}>
-              <TouchableOpacity onPress={() => router.push({ pathname: '/board/club/editMeeting/[meetingID]', params: { meetingID: meeting.id } })}>
-                <Pencil />
-              </TouchableOpacity>
-              <TouchableOpacity
-                key={index}
-                style={styles.meetingBlock}
-                onPress={() => {
-                  console.log(meeting.id);
-                  router.navigate({ pathname: '/club/meetings/[meetingID]', params: { meetingID: meeting.id } });
-                }}
-              >
-                <Text style={styles.meetingClub}>#{meeting.id}</Text>
-                <Text style={styles.meetingName}>{meeting.name}</Text>
-                <Text style={styles.meetingDate}>Date: {date}</Text>
-              </TouchableOpacity>
-            </View>
-          );
-        })}
+        {filteredMeetings.length == 0 ? (
+          <Text>No Meetings Matched Filter Criteria</Text>
+        ) : (
+          filteredMeetings.map((meeting, index) => {
+            var date = new Intl.DateTimeFormat("en-GB", {
+              dateStyle: "full",
+              timeZone: "Australia/Sydney",
+            }).format(new Date(meeting.meeting_date));
+            return (
+              <View key={meeting.id} style={styles.row}>
+                <TouchableOpacity
+                  onPress={() =>
+                    router.push({
+                      pathname: "/board/club/editMeeting/[meetingID]",
+                      params: { meetingID: meeting.meeting_id },
+                    })
+                  }
+                >
+                  <Pencil />
+                </TouchableOpacity>
+                <TouchableOpacity
+                  key={index}
+                  style={styles.meetingBlock}
+                  onPress={() => {
+                    router.navigate({
+                      pathname: "/club/meetings/[meetingID]",
+                      params: { meetingID: meeting.meeting_id },
+                    });
+                  }}
+                >
+                  <Text style={styles.meetingClub}>#{meeting.meeting_id}</Text>
+                  <Text style={styles.meetingName}>{meeting.meeting_name}</Text>
+                  <Text style={styles.meetingDate}>{date}</Text>
+                </TouchableOpacity>
+              </View>
+            );
+          })
+        )}
       </ScrollView>
 
       {/* Bottom Navigation */}

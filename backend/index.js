@@ -291,7 +291,7 @@ app.get("/user/:id", (req, res) => {
     }
 
     if (results.length === 0) {
-      return res.status(404).json({ message: "User not found" });
+      return res.status(201).json({ message: "User not found" });
     }
 
     res.json(results);
@@ -388,7 +388,7 @@ app.get("/club/:id", (req, res) => {
 
 app.get("/meeting/:id", (req, res) => {
   const clubId = req.params.id;
-  const query = "SELECT * FROM meeting WHERE club_id = ?";
+  const query = "SELECT * FROM meeting WHERE club_id = ? order by meeting_date asc";
 
   db.query(query, [clubId], (err, results) => {
     if (err) {
@@ -405,7 +405,7 @@ app.get("/meeting/:id", (req, res) => {
 });
 app.get("/upcomingMeetings/:id", (req, res) => {
   const clubId = req.params.id;
-  const query = "SELECT * FROM meeting WHERE club_id = ? AND meeting_date > NOW()";
+  const query = "SELECT * FROM meeting WHERE club_id = ? AND meeting_date > NOW() order by meeting_date asc";
 
   db.query(query, [clubId], (err, results) => {
     if (err) {
@@ -432,7 +432,7 @@ app.get("/meeting_details/:id", (req, res) => {
     }
 
     if (results.length === 0) {
-      return res.status(404).json({ message: "Meeting not found" });
+      return res.status(201).json({ message: "Meeting not found" });
     }
 
     res.json(results); // Send only the first (and only) result
@@ -441,6 +441,7 @@ app.get("/meeting_details/:id", (req, res) => {
 
 app.post("/meeting/add/", (req, res) => {
   const {
+    club_id,
     meetingname,
     meetingplace,
     meetingdate,
@@ -450,10 +451,11 @@ app.post("/meeting/add/", (req, res) => {
     instructions,
   } = req.body;
   const editProfileQuery =
-    "Insert into meeting SET meeting_name = ?, meeting_date = ?, meeting_time = ?, arrival_time = ?, meeting_place = ?, agenda_file_link = ?, entry_instructions = ?";
+    "Insert into meeting SET club_id = ?, meeting_name = ?, meeting_date = ?, meeting_time = ?, arrival_time = ?, meeting_place = ?, agenda_file_link = ?, entry_instructions = ?";
   db.query(
     editProfileQuery,
     [
+      club_id,
       meetingname,
       meetingdate,
       meetingstarttime,
