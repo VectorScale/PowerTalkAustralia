@@ -168,12 +168,10 @@ app.post("/profile/edit/", (req, res) => {
     phone_number,
     address,
     postcode,
-    interests,
-    pronouns,
-    dob,
+    note,
   } = req.body;
   const editProfileQuery =
-    "UPDATE members SET first_name = ?, last_name = ?, email = ?, phone_number = ?, address = ?, postcode = ?, interests = ?, pronouns = ?, dob = ? WHERE user_id = ?";
+    "UPDATE members SET first_name = ?, last_name = ?, email = ?, phone_number = ?, address = ?, postcode = ?, notes = ? WHERE user_id = ?";
   db.query(
     editProfileQuery,
     [
@@ -183,9 +181,7 @@ app.post("/profile/edit/", (req, res) => {
       phone_number,
       address,
       postcode,
-      interests,
-      pronouns,
-      dob,
+      note,
       profile_id,
     ],
     (err, result) => {
@@ -549,6 +545,7 @@ app.get("/clubAccess/:id", (req, res) => {
 
 app.get("/clubBoard/:id", (req, res) => {
   const clubId = req.params.id;
+  console.log(clubId);
   
   const query = "SELECT User_id FROM `member's club` WHERE Club_id = ?";
 
@@ -558,8 +555,10 @@ app.get("/clubBoard/:id", (req, res) => {
       return res.status(500).json({ message: "Internal server error" });
     }
 
+    console.log(results);
+
     if (results.length === 0) {
-      return res.status(404).json({ message: "User not found" });
+      return res.status(201).json({ message: "User not found" });
     }
 
     res.json(results);
@@ -595,7 +594,8 @@ app.get("/clubBoardMembers/:id", (req, res) => {
     }
 
     if (results.length === 0) {
-      return res.status(404).json({ message: "User not found" });
+      console.log("Tesst");
+      return res.status(201).json({ message: "User not found" });
     }
 
     res.json(results);
@@ -626,12 +626,23 @@ app.get("/members", (req, res) => {
   });
 });
 
+app.get("/users", (req, res) => {
+  const query = "SELECT user_id FROM members";
+  db.query(query, (err, results) => {
+    res.json(results);
+  });
+});
+
 app.get("/association/boardMembers/:access", (req, res) => {
   const access = req.params.access;
   const levels = ['club','council','association'];
 
-  const query = `SELECT user_id FROM board_members WHERE level_of_access IN ('${levels.slice(access-1).join("','")}')`;
-  
+  var query = "";
+  if (access == 0){
+    query = `SELECT user_id, club_id FROM board_members`;
+  } else {
+    query = `SELECT user_id, club_id FROM board_members WHERE level_of_access = '${levels[access]}'`;
+  }
   db.query(query, (err, results) => {
     res.json(results);
   });

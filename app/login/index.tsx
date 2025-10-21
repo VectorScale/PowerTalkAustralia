@@ -120,7 +120,7 @@ const LoginForm = () => {
               />
               {errors[name as Names] && isSubmitted && (
                 <Text style={styles.errorText}>
-                  {errors[name as Names]?.message ?? "Hello"}
+                  {errors[name as Names]?.message ?? ""}
                 </Text>
               )}
             </View>

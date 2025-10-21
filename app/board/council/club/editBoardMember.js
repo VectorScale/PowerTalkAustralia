@@ -211,7 +211,7 @@ const CouncilAddBoardMembersPage = () => {
                 style={styles.formInput}
                 value={formData.startDate}
                 onChangeText={(text) => handleInputChange('startDate', text)}
-                placeholder="DD/MM/YYYY"
+                placeholder="YYYY-MM-DD"
                 placeholderTextColor="#999"
               />
             </View>
@@ -223,7 +223,7 @@ const CouncilAddBoardMembersPage = () => {
                 style={styles.formInput}
                 value={formData.endDate}
                 onChangeText={(text) => handleInputChange('endDate', text)}
-                placeholder="DD/MM/YYYY"
+                placeholder="YYYY-MM-DD"
                 placeholderTextColor="#999"
               />
             </View>

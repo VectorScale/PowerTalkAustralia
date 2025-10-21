@@ -56,16 +56,25 @@ const ClubBoardMemberPage = () => {
     if (clubId == "") return;
     (async () => {
       try {
+        console.log(clubId);
         // Step 1: Get club list from user info
-        const { data } = await axios.get(
+        const clubMembers = await axios.get(
           `${process.env.EXPO_PUBLIC_IP}/clubBoard/${clubId}`
         );
 
         const MemberDetails = await Promise.all(
-          data.map(async (item) => {
+          clubMembers.data.map(async (item) => {
             const res = await axios.get(
               `${process.env.EXPO_PUBLIC_IP}/clubBoardMembers/${item.User_id}`
             );
+            /*I cant for the life of me stop this function from throwing a 404 if
+            there is a userid in the members club table whose member doesnt exist 
+            anymore so if the sql constraints fail to remove deleted members from 
+            the table make sure to get rid of them*/
+
+            if (res.status == 201){
+              return {};
+            }
             const fullName =
               res.data[0].first_name + " " + res.data[0].last_name;
             const id = res.data[0].user_id;
@@ -81,7 +90,6 @@ const ClubBoardMemberPage = () => {
             };
           })
         );
-        
         setDetails(MemberDetails);
       } catch (error) {
         console.error("Error fetching user details:", error);

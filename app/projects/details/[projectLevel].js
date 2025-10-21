@@ -150,7 +150,6 @@ const ProjectDetailPage = () => {
                   onChangeText={text => setFeedback(text)}
                   value={feedback}
                 />
-                <Text>{feedback}</Text>
               </View>
               <View style={styles.modalFunction}>
                 <PTButton onPress={() => setVisible(false)}>Cancel</PTButton>

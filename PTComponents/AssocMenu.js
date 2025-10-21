@@ -7,25 +7,25 @@ const AsscociationMenu = (props) => (
         style={styles.buttons}
         onPress={props.onPressMembers}
       >
-        <Text style={styles.name}>Members</Text>
+        <Text style={[styles.name, props.level==0 && styles.active]}>Club</Text>
       </TouchableOpacity>
       <TouchableOpacity
         style={styles.buttons}
         onPress={props.onPressBoard}
       >
-        <Text style={styles.name}>Board</Text>
+        <Text style={[styles.name, props.level==1 && styles.active]}>Board</Text>
       </TouchableOpacity>
       <TouchableOpacity
         style={styles.buttons}
         onPress={props.onPressCouncil}
       >
-        <Text style={styles.name}>Council</Text>
+        <Text style={[styles.name, props.level==2 && styles.active]}>Council</Text>
       </TouchableOpacity>
       <TouchableOpacity
         style={styles.buttons}
         onPress={props.onPressAssoc}
       >
-        <Text style={styles.name}>Association</Text>
+        <Text style={[styles.name, props.level==3 && styles.active]}>Association</Text>
       </TouchableOpacity>
   </View>
 );
@@ -52,5 +52,9 @@ const styles = StyleSheet.create({
     fontSize: 10,
     fontWeight: "bold",
     color: "#ffffff",
+  },
+  active: {
+    textDecorationLine:"underline",
+    textDecorationColor:"white"
   },
 });
