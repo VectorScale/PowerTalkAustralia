@@ -61,7 +61,7 @@ const Profile = () => {
         Alert.alert("Error", "Failed to load Profile Data");
       }
     })();
-  });
+  }, []);
 
   useEffect(() => {
     if (!userId && !profiles) return;

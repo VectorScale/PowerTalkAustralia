@@ -44,7 +44,7 @@ const CouncilsClubsPage = () => {
           try {
     
             // get all club api
-          const clubsRes = await axios.get(`${process.env.EXPO_PUBLIC_IP}/user/${userId}`);
+          const clubsRes = await axios.get(`${process.env.EXPO_PUBLIC_IP}/allClubs`);
             const clubs = clubsRes.data || [];
     
             const clubMeetingDetails = await Promise.all(

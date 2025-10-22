@@ -9,8 +9,10 @@ import {
   Alert,
 } from "react-native";
 import Finger from "@/PTComponents/Finger";
+import Button from "@/PTComponents/Button"
 
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import Clipboard from '@react-native-clipboard/clipboard';
 
 import axios from "axios";
 import { useNavigation } from "expo-router";
@@ -88,7 +90,7 @@ const MeetingDetails = () => {
           }).format(new Date(meeting[0].meeting_date))}
         </Text>
         <Text style={styles.value}>
-          <Finger /> {meeting[0].meeting_time.slice(0, 5)}{" "}
+          <Finger /> Meeting Time: {meeting[0].meeting_time.slice(0, 5)}{" "}
           {meeting[0].arrival_time && "(Arrive at " + meeting[0].arrival_time + ")"}
         </Text>
         <Text style={styles.value}>
@@ -102,10 +104,10 @@ const MeetingDetails = () => {
         {meeting[0].agenda_file_link && (
           <View>
             <Text>
-              <Finger /> Program Link:
+              <Finger /> Program Link: {meeting[0].agenda_file_link}
             </Text>
             <View>
-              <TextInput readOnly={true} value={meeting[0].agenda_file_link} />
+              <Button onPress={()=>Clipboard.setString(meeting[0].agenda_file_link)}>Copy Link</Button>
             </View>
           </View>
         )}
