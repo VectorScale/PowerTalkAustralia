@@ -1159,7 +1159,41 @@ app.get("/projects/getFeedback/:id", async (req, res) => {
     res.json(result);
   });
 });
+app.post("/join", (req, res) => {
+   let { user_id, meeting_id, attended }= req.body;
+  const query = "INSERT INTO meeting_attendance (user_id , meeting_id, attended) VALUES (?, ?, ?)";
+  db.query(query, [ user_id, meeting_id, attended] , (err, result) => {
+    if (err) {
+      console.error("Database error:", err);
+      return res.status(500).json({ message: "Database Error" });
+    }
+    return res.status(200).json({ message: "User Joined Successfully" });
+  })
+})
+app.delete("/notjoin", (req, res) => {
+   let { user_id, meeting_id }= req.body;
+  const query = "DELETE FROM meeting_attendance WHERE user_id = ? AND meeting_id = ?";
+  db.query(query, [ user_id , meeting_id] , (err, result) => {
+    if (err) {
+      console.error("Database error:", err);
+      return res.status(500).json({ message: "Database Error" });
+    }
+    return res.status(200).json({ message: "User Deleted Successfully" });
+  })
+})
+app.get("/join_meeting/:id" , (req, res) =>{
+  let id = req.params.id;
+  const query = "SELECT * FROM meeting_attendance WHERE user_id = ?"
+   db.query(query, [id], (err, result) => {
+    if (err) {
+      console.error("Database error:", err);
+      return res.status(500).json({ message: "Database Error" });
+    }
 
+      res.json(result);
+    
+  });
+})
 app.get("/projects/getRequests/:id", async (req, res) => {
   const id = req.params.id;
   const query = "SELECT A.project_id, A.request_id, B.project_title, B.project_number FROM program_requests as A Inner JOIN development_program AS B ON A.project_id = B.project_id where B.user_id = ?";
