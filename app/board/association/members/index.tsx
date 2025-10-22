@@ -24,6 +24,7 @@ const ClubMembersPage = () => {
   const nav = useNavigation();
 
   const [memberDetails, setDetails] = useState<any>([]);
+  const [sortedDetails, setSortedDetails] = useState<any>([]);
   const [clubs, setClubs] = useState<any>([]);
   const [clubIds, setClubIds] = useState<any>([]);
   const [ids, setIds] = useState<any>([]);
@@ -59,7 +60,7 @@ const ClubMembersPage = () => {
       try {
         setSelectedClub("All Clubs");
         setSelectedClubId(0);
-        setSortBy("A-Z");
+        setSortBy("None");
         if (level == 0) {
           const res = await axios.get(`${process.env.EXPO_PUBLIC_IP}/users`);
           setIds(res.data);
@@ -149,6 +150,7 @@ const ClubMembersPage = () => {
             const id = res.data[0].user_id;
             const guest = res.data[0].guest;
             const PaidAmount = res.data[0].paid;
+            const joinDate = res.data[0].join_date;
             return {
               firstName,
               lastName,
@@ -156,6 +158,7 @@ const ClubMembersPage = () => {
               guest,
               PaidAmount,
               position,
+              joinDate
             };
           })
         );
@@ -164,8 +167,6 @@ const ClubMembersPage = () => {
           setObj.add(member);
         });
         setDetails(Array.from(setObj));
-        setSortBy("Z-A");
-        setSortBy("A-Z");
       } catch (error) {
         console.error("Error fetching member details:", error);
         Alert.alert("Error", "Failed to fetch Member Details");
@@ -179,27 +180,29 @@ const ClubMembersPage = () => {
 
 
   useEffect(() => {
-    if (sortBy == "None") return;
+    if (sortBy == "None") setSortedDetails([]);
     const sortedMembers = memberDetails.sort((a: any, b: any) => {
-      console.log(a);
-      console.log(b);
       if (sortBy == "Z-A") {
-        const firstCompare = a.firstName.localeCompare(b.firstName);
+        const firstCompare = a.lastName.localeCompare(b.lastName);
         if (firstCompare !== 0) {
           return firstCompare;
         } else {
-          return a.lastName.localeCompare(b.lastName);
+          return a.firstName.localeCompare(b.firstName);
         }
       } else if (sortBy == "A-Z") {
-        const firstCompare = b.firstName.localeCompare(a.firstName);
+        const firstCompare = b.lastName.localeCompare(a.lastName);
         if (firstCompare !== 0) {
           return firstCompare;
         } else {
-          return b.lastName.localeCompare(a.lastName);
+          return b.firstName.localeCompare(a.firstName);
         }
+      } else if (sortBy == "New") {
+          return a.joinDate.localeCompare(b.joinDate);
+      } else if (sortBy == "Old") {
+          return b.joinDate.localeCompare(a.joinDate);
       }
     });
-    setDetails(sortedMembers);
+    setSortedDetails(sortedMembers);
   }, [sortBy]);
 
   return (
@@ -213,7 +216,6 @@ const ClubMembersPage = () => {
           onPressAssoc={() => setLevel(3)}
           level={level}
         />
-        <Text>{sortBy}</Text>
         <FilterButton onFilter={() => setFilter(!filterShow)} />
         {filterShow && (<View>
           <Picker
@@ -249,17 +251,18 @@ const ClubMembersPage = () => {
             style={styles.picker}
             onValueChange={(itemValue) => setSortBy(itemValue)}
           >
+            <Picker.Item label="Sort By" value="None" />
             <Picker.Item label="Last Name A-Z" value="A-Z" />
             <Picker.Item label="Last Name Z-A" value="Z-A" />
-            <Picker.Item label="Join Date Newest" value="None" />
-            <Picker.Item label="Join Date Oldest" value="None" />
+            <Picker.Item label="Join Date Newest" value="New" />
+            <Picker.Item label="Join Date Oldest" value="Old" />
           </Picker>
         </View>)}
 
-        {memberDetails.map((member: any, index: any) => (
-          <View style={styles.memberBlock}>
+        {(sortedDetails.length > 0 ? sortedDetails : memberDetails).map((member: any, index: any) => (
+          <View
+              key={index} style={styles.memberBlock}>
             <TouchableOpacity
-              key={index}
               style={styles.memberInfo}
               onPress={() =>
                 router.navigate({
