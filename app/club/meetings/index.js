@@ -96,11 +96,9 @@ const ProfileScreen = () => {
 
   // Fetch user and club info
   useEffect(() => {
-    console.log(clubs);
     if (clubs == []) return;
     (async () => {
       try {
-        console.log(clubs);
         // Step 2: Fetch names for all clubs
         const clubMeetingDetails = await Promise.all(
           clubs.map(async (item) => {
@@ -113,7 +111,6 @@ const ProfileScreen = () => {
               `${process.env.EXPO_PUBLIC_IP}/meeting/${item.club_id}`
             );
             const MeetNames = resMeet.data;
-            console.log(MeetNames);
             if (resMeet.status != 200) return null;
             return {
               clubNames,
@@ -136,8 +133,10 @@ const ProfileScreen = () => {
             return flatClub;
           }
         });
-
-        setClubwithMeetings(flattenedMeetings);
+        const sortedMeetings = flattenedMeetings.sort((a, b) => {
+          return a.date.localeCompare(b.date);
+        });
+        setClubwithMeetings(sortedMeetings);
       } catch (error) {
         console.error("Error fetching user or club data:", error);
         Alert.alert("Error", "Failed to fetch user or club data");
