@@ -132,7 +132,7 @@ const LoginForm = () => {
         </View>
 
         <View style={styles.function}>
-          <Button onPress={() => router.push("./register")}>Register</Button>
+          <Button onPress={() => router.push("/login/register")}>Register</Button>
 
           <Button onPress={handleSubmit(handleLogin)}>Login</Button>
         </View>
