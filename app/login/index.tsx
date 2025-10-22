@@ -66,10 +66,12 @@ const LoginForm = () => {
             pathname: "/login/selectDestination",
           });
         } else if (member.data.paid == "0") {
-          await AsyncStorage.setItem("userId", member.data.user_id.toString());
-          router.replace({
-            pathname: "/guest/limit",
-          });
+          await AsyncStorage.removeItem("userId");
+          router.replace(
+            {pathname: "/guest/[guestID]",
+              params: {guestID: member.data.user_id}
+            }
+          );
         }
       }
 

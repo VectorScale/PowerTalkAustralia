@@ -1,21 +1,16 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import DateTimePicker from '@react-native-community/datetimepicker';
-import { useNavigation } from '@react-navigation/native';
+
 import axios from 'axios';
+import { router, useLocalSearchParams } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
-  ActivityIndicator,
   Alert,
-  Image,
-  KeyboardAvoidingView,
   Platform,
-  ScrollView,
   StyleSheet,
   Text,
-  TextInput,
-  TouchableOpacity,
   View,
 } from 'react-native';
+
+import Button from "@/PTComponents/Button";
 
 // Meeting
 interface Meeting {
@@ -31,31 +26,18 @@ interface Meeting {
 
 // 三个界面three pages
 const GuestMeetingPages = () => {
-  
-  const [userId, setUserId] = useState("");
+
+  const userId = useLocalSearchParams().guestID;
   const [guest, setGuest] = useState<any>([]);
-  useEffect(() => {
-    (async () => {
-      try {
-        const storedUserId = await AsyncStorage.getItem("userId");
-        if (storedUserId) {
-          console.log(storedUserId);
-          setUserId(storedUserId);
-        }
-      } catch (error) {
-        console.error("Error fetching userId from storage:", error);
-        Alert.alert("Error", "Failed to load user ID");
-      }
-    })();
-  }, []);
+
 
   useEffect(() => {
-    if(!userId)return;
+    if (!userId) return;
     (async () => {
       try {
         const guest = await axios.get(
-                `${process.env.EXPO_PUBLIC_IP}/member/${userId}`
-              );
+          `${process.env.EXPO_PUBLIC_IP}/member/${userId}`
+        );
         setGuest(guest.data);
       } catch (error) {
         console.error("Error fetching userId from storage:", error);
@@ -71,8 +53,10 @@ const GuestMeetingPages = () => {
     <View style={styles.container}>
       <View style={styles.detailContainer}>
 
-    <Text>You have used {guest.guest} of your free meetings as a guest</Text>
-      </View>
+        <Text>You have used {guest.guest} of your free meetings as a guest</Text>
+        <View style={{ alignItems:"center" }}>
+          <Button onPress={() => router.navigate("/club/meetings")}>See Meetings</Button>
+        </View></View>
     </View>
   );
 };
