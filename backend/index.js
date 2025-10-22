@@ -258,7 +258,7 @@ app.post("/users/login", (req, res) => {
         message: "Login successful",
       });
     } else {
-      return res.status(401).json({ message: "Invalid Credentials" });
+      return res.status(201).json({ message: "Invalid Credentials" });
     }
   });
 });

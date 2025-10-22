@@ -40,6 +40,9 @@ const LoginForm = () => {
           password: data.password.trim(),
         }
       );
+      if (login.status == 201){
+        Alert.alert("Try Again", "Incorrect Member Number or Password")
+      } else {
       const member = await axios.get(
         `${process.env.EXPO_PUBLIC_IP}/member/${login.data.user_id}`
       );
@@ -71,6 +74,7 @@ const LoginForm = () => {
       }
 
       Alert.alert("Login Response", login.data.message);
+    }
     } catch (error: any) {
       if (error.login) {
         console.error("Server error response:", error.login.data);
