@@ -29,8 +29,8 @@ const PTHeader = () => {
   const handleLogout = async () => {
     try {
       await AsyncStorage.removeItem("userId");
-      router.dismissAll();
-      router.replace({ pathname: "/" });
+      router.dismissTo("/");
+      //router.replace({ pathname: "/" });
     } catch (error) {
       console.error("Error logging out:", error);
     }

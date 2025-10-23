@@ -40,20 +40,18 @@ const AddMemberPage = () => {
   }, []);
 
   useEffect(() => {
-    if (userId == "") return;
     (async () => {
       try {
-        const access = await axios.get(
-          `${process.env.EXPO_PUBLIC_IP}/clubAccess/${userId}`
-        );
-        setClubId(access.data.club_id);
-        console.log(clubId);
+        const storedClubId = await AsyncStorage.getItem("clubId");
+        if (storedClubId) {
+          setClubId(storedClubId);
+        }
       } catch (error) {
         console.error("Error fetching club:", error);
         Alert.alert("Error", "Failed to load Club");
       }
     })();
-  }, [userId]);
+  }, []);
 
   const {
     control,

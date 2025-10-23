@@ -144,6 +144,7 @@ const ProfileScreen = () => {
     setSelectedMonth(months[0]);
     setSelectedYear(years[0]);
   }, [months, years]);
+
   useEffect(() => {
     if (clubs == []) return;
     (async () => {
@@ -206,25 +207,32 @@ const ProfileScreen = () => {
         )}
 
         {/* Meeting Buttons */}
-        {filteredMeetings.map((meeting, index) => {
-          const date = new Date(meeting.date).toISOString().split("T")[0];
-          return (
-            <TouchableOpacity
-              key={index}
-              style={styles.meetingBlock}
-              onPress={() =>
-                router.navigate({
-                  pathname: "/club/meetings/[meetingID]",
-                  params: { meetingID: meeting.id },
-                })
-              }
-            >
-              <Text style={styles.meetingClub}>Club : {meeting.club}</Text>
-              <Text style={styles.meetingName}>Meeting : {meeting.name}</Text>
-              <Text style={styles.meetingDate}>Meeting date : {date}</Text>
-            </TouchableOpacity>
-          );
-        })}
+        {filteredMeetings.length == 0 ? (
+          <Text>No Meetings Matched Filter Criteria</Text>
+        ) : (
+          filteredMeetings.map((meeting, index) => {
+            var date = new Intl.DateTimeFormat("en-GB", {
+              dateStyle: "full",
+              timeZone: "Australia/Sydney",
+            }).format(new Date(meeting.date));
+            return (
+              <TouchableOpacity
+                key={index}
+                style={styles.meetingBlock}
+                onPress={() =>
+                  router.navigate({
+                    pathname: "/club/meetings/[meetingID]",
+                    params: { meetingID: meeting.id },
+                  })
+                }
+              >
+                <Text style={styles.meetingClub}>Club : {meeting.club}</Text>
+                <Text style={styles.meetingName}>Meeting : {meeting.name}</Text>
+                <Text style={styles.meetingDate}>{date}</Text>
+              </TouchableOpacity>
+            );
+          })
+        )}
       </ScrollView>
       {/* Bottom Navigation */}
       {userId ? (

@@ -44,19 +44,19 @@ const AddExistingPage = () => {
   }, []);
 
   useEffect(() => {
-    if (userId == "") return;
     (async () => {
       try {
-        const access = await axios.get(
-          `${process.env.EXPO_PUBLIC_IP}/clubAccess/${userId}`
-        );
-        setClubId(access.data.club_id);
+        const storedClubId = await AsyncStorage.getItem("clubId");
+        if (storedClubId) {
+          setClubId(storedClubId);
+        }
       } catch (error) {
         console.error("Error fetching club:", error);
         Alert.alert("Error", "Failed to load Club");
       }
     })();
-  }, [userId]);
+  }, []);
+
 
   useEffect(() => {
     if (clubId == "") return;
@@ -120,18 +120,10 @@ const AddExistingPage = () => {
         User_id: addID,
         Club_id: clubId,
       };
-      const access = await axios.get(
-        `${process.env.EXPO_PUBLIC_IP}/clubAccess/${userId}`
-      );
-
-      if (access.data.club_id == clubId) {
-        await axios.post(`${process.env.EXPO_PUBLIC_IP}/BoardMember/`, payload);
-        Alert.alert("Success", "Member added to your club");
-        setSearch("");
-        setAdd(add + 1);
-      } else {
-        console.log("You can not add member");
-      }
+      await axios.post(`${process.env.EXPO_PUBLIC_IP}/BoardMember/`, payload);
+      Alert.alert("Success", "Member added to your club");
+      setSearch("");
+      setAdd(add + 1);
     } catch (error) {
       Alert.alert("Error", "Failed to add member data");
     }

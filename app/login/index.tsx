@@ -103,7 +103,9 @@ const LoginForm = () => {
         }
         
       );
-      
+      if (login.status == 201){
+        Alert.alert("Try Again", "Incorrect Member Number or Password")
+      } else {
       const member = await axios.get(
         `${process.env.EXPO_PUBLIC_IP}/member/${login.data.user_id}`
       );
@@ -129,14 +131,17 @@ const LoginForm = () => {
             pathname: "/login/selectDestination",
           });
         } else if (member.data.paid == "0") {
-          await AsyncStorage.setItem("userId", member.data.user_id.toString());
-          router.replace({
-            pathname: "/guest/limit",
-          });
+          await AsyncStorage.removeItem("userId");
+          router.replace(
+            {pathname: "/guest/[guestID]",
+              params: {guestID: member.data.user_id}
+            }
+          );
         }
       }
 
       Alert.alert("Login Response", login.data.message);
+    }
     } catch (error: any) {
       if (error.login) {
         console.error("Server error response:", error.login.data);
@@ -194,7 +199,7 @@ const LoginForm = () => {
         </View>
 
         <View style={styles.function}>
-          <Button onPress={() => router.push("./login/register")}>Register</Button>
+          <Button onPress={() => router.push("./register")}>Register</Button>
 
           <Button onPress={handleSubmit(handleLogin)}>Login</Button>
         </View>
