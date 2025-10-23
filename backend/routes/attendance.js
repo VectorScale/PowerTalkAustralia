@@ -39,3 +39,4 @@ router.get("/join_meeting/:id" , (req, res) =>{
   });
 })
 
+module.exports = router;
