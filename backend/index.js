@@ -178,8 +178,7 @@ app.post("/users/checkMonthlyMembers", (req, res) => {
   const monthlyMembersQuery =
     "select max(cast(Substring(website_login, 7)as decimal))+1 as 'monthlyMembers' from member_logins where SUBSTRING(website_login, 1, 6) like " +
     yyyy +
-    mm +
-    " Order by website_login DESC LIMIT 1";
+    mm;
 
   db.query(monthlyMembersQuery, (err, result) => {
     console.log(result)
