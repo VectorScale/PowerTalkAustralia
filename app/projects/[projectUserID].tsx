@@ -66,7 +66,7 @@ const MembersProjectPage1 = () => {
       {userId != "" && (
         <ScrollView contentContainerStyle={styles.content}>
           {/* Level Buttons */}
-          {[1, 2, 3, 4].map((level) => (
+          {[1, 2, 3, 3.1, 4, 4.1].map((level) => (
             <TouchableOpacity
               key={level}
               style={styles.levelButton}

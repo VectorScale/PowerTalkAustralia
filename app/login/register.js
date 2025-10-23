@@ -142,6 +142,22 @@ const RegisterForm = () => {
       );
     }
     try {
+      const projectLevels2 = await axios.post(
+        `${process.env.EXPO_PUBLIC_IP}/member/projects/2`,
+        payload
+      );
+      console.log("Success Level 2 Projects Added")
+    } catch (error) {
+      console.error(
+        "Error submitting form:",
+        error.response ? error.response.data : error.message
+      );
+      Alert.alert(
+        "Error",
+        error.response?.data?.message || "Project Creation failed"
+      );
+    }
+    try {
       const projectLevels3 = await axios.post(
         `${process.env.EXPO_PUBLIC_IP}/member/projects/3`,
         payload
@@ -157,6 +173,54 @@ const RegisterForm = () => {
         error.response?.data?.message || "Project Creation failed"
       );
     }
+    try {
+      const projectLevels1 = await axios.post(
+        `${process.env.EXPO_PUBLIC_IP}/member/projects/3a`,
+        payload
+      );
+      console.log("Success Level 3a Projects Added")
+    } catch (error) {
+      console.error(
+        "Error submitting form:",
+        error.response ? error.response.data : error.message
+      );
+      Alert.alert(
+        "Error",
+        error.response?.data?.message || "Project Creation failed"
+      );
+    }
+    try { 
+      const projectLevels1 = await axios.post(
+        `${process.env.EXPO_PUBLIC_IP}/member/projects/4`,
+        payload
+      );
+      console.log("Success Level 4 Projects Added")
+    } catch (error) {
+      console.error(
+        "Error submitting form:",
+        error.response ? error.response.data : error.message
+      );
+      Alert.alert(
+        "Error",
+        error.response?.data?.message || "Project Creation failed"
+      );
+    }
+    try {
+      const projectLevels4a = await axios.post(
+        `${process.env.EXPO_PUBLIC_IP}/member/projects/4a`,
+        payload
+      );
+      console.log("Success Level 4a Projects Added")
+    } catch (error) {
+      console.error(
+        "Error submitting form:",
+        error.response ? error.response.data : error.message
+      );
+      Alert.alert(
+        "Error",
+        error.response?.data?.message || "Project Creation failed"
+      );
+    } 
 
     try {
       const registerResponse = await axios.post(
