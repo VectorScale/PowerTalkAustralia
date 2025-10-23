@@ -789,7 +789,7 @@ app.post("/projects/", (req, res) => {
     }
 
     if (result.length === 0) {
-      return res.status(404).json({ message: "User not found" });
+      return res.status(201).json({ message: "Projects not found" });
     }
     res.json(result);
   });
