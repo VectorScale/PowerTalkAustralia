@@ -51,7 +51,7 @@ const ProfileScreen = () => {
   }, []);
 
   useEffect(() => {
-    nav.setOptions({ headerShown: true, title: "Club Meetings" });
+    nav.setOptions({ headerShown: true, title: "Upcoming Meetings" });
   });
 
   useEffect(() => {
