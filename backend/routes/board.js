@@ -21,6 +21,8 @@ router.get("/boardMemberAccess/:id", async (req, res) => {
     res.json(result[0]);
   });
 });
+
+
 /**
  * Get board member information by user ID
  * URL Parameter: id 
@@ -52,7 +54,15 @@ router.get("/association/boardMembers/:access", (req, res) => {
   const access = req.params.access;
   const levels = ['club','council','association'];
 
-  const query = `SELECT user_id FROM board_members WHERE level_of_access IN ('${levels.slice(access-1).join("','")}')`;
+  var query = "";
+  if (access == 0){
+    query = `SELECT user_id, club_id FROM board_members`;
+  } else {
+    query = `SELECT user_id, club_id FROM board_members WHERE level_of_access = '${levels[access]}'`;
+  }
+  db.query(query, (err, results) => {
+    res.json(results);
+  });
   
   db.query(query, (err, results) => {
     res.json(results);
@@ -112,5 +122,35 @@ router.post("/send-messages", async (req, res) => {
   });
 });
 
+router.get("/allClubBoardMembers/", (req, res) => {
+  const query = "SELECT * FROM board_members";
 
+  db.query(query, (err, results) => {
+    if (err) {
+      console.error("Database error:", err);
+      return res.status(500).json({ message: "Internal server error" });
+    }
+
+    if (results.length === 0) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.json(results);
+  });
+});
+
+router.post("/editBoardMember", (req, res) => {
+const {user_id, position, start, end} = req.body;
+
+  const query =
+    "UPDATE `board_members` SET position = ?, term_start = ?, term_end = ? WHERE user_id = ?";
+
+  db.query(query, [position, start, end || null, user_id], (err, result) => {
+    if (err) {
+      console.error("Database error:", err);
+      return res.status(500).json({ message: "Database Error" });
+    }
+    return res.status(200).json({ message: "New Member Added Successfully" });
+  });
+});
 module.exports = router;
