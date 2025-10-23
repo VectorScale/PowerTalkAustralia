@@ -1170,7 +1170,7 @@ app.post("/join", (req, res) => {
     return res.status(200).json({ message: "User Joined Successfully" });
   })
 })
-app.delete("/notjoin", (req, res) => {
+app.post("/notjoin", (req, res) => {
    let { user_id, meeting_id }= req.body;
   const query = "DELETE FROM meeting_attendance WHERE user_id = ? AND meeting_id = ?";
   db.query(query, [ user_id , meeting_id] , (err, result) => {
@@ -1178,7 +1178,7 @@ app.delete("/notjoin", (req, res) => {
       console.error("Database error:", err);
       return res.status(500).json({ message: "Database Error" });
     }
-    return res.status(200).json({ message: "User Deleted Successfully" });
+    return res.status(200).json({ message: "Attendance Deleted Successfully" });
   })
 })
 app.get("/join_meeting/:id" , (req, res) =>{

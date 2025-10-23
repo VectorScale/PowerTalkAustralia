@@ -7,10 +7,9 @@ import {
   TouchableOpacity,
   ScrollView,
 } from "react-native";
-import Filter from "@/PTComponents/Filter";
-
 import BottomNav from "@/PTComponents/BottomNav";
 import Pencil from "@/PTComponents/Pencil";
+import FilterButton from "@/PTComponents/FilterButton";
 import { Picker } from "@react-native-picker/picker";
 
 import { useNavigation } from "@react-navigation/native";
@@ -22,21 +21,26 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 const ProfileScreen = () => {
   const router = useRouter();
   const nav = useNavigation();
-   const [filterShow, setFilterShow] = useState(false);
- 
-  const [userId, setUserId] = useState(null);
+
+  const [userId, setUserId] = useState("");
   const [clubs, setClubs] = useState([]);
   const [clubMeetings, setClubwithMeetings] = useState([]);
-  const [compare, setCompare] = useState(false);
-  const [selectedMonth, setSelectedMonth] = useState("Select Month");
-  const [selectedYear, setSelectedYear] = useState("Select Year");
-  const [selectedClub, setSelectedClub] = useState("All Names");
-  const [id, setid] = useState(null);
+  const [filteredMeetings, setFiltered] = useState([]);
+
+  const [filterShow, setFilterShow] = useState(false);
+
+  const [months, setMonths] = useState([]);
+  const [years, setYears] = useState([]);
+
+  const [selectedMonth, setSelectedMonth] = useState("");
+  const [selectedYear, setSelectedYear] = useState("");
+
   useEffect(() => {
     (async () => {
       try {
         const storedUserId = await AsyncStorage.getItem("userId");
         if (storedUserId) {
+          console.log(storedUserId);
           setUserId(storedUserId);
         }
       } catch (error) {
@@ -46,83 +50,113 @@ const ProfileScreen = () => {
     })();
   }, []);
 
-  // Fetch user and club info
   useEffect(() => {
-    if (!userId) return;
+    nav.setOptions({ headerShown: true, title: "Club Meetings" });
+  });
 
+  useEffect(() => {
+    if (userId != "") return;
     (async () => {
       try {
         // Step 1: Get club list from user info
         const { data } = await axios.get(
-          `http://192.168.1.132:8081/clubAccess/${userId}`
+          `${process.env.EXPO_PUBLIC_IP}/allClubs/`
         );
-        const clubList = data.club_id || [];
-        setClubs(clubList);
-
-        const resMeet = await axios.get(
-          `http://192.168.1.132:8081/meeting/${clubList}`
-        );
-        setClubwithMeetings(resMeet.data);
-        setid(resMeet.data.meeting_id);
-      
+        const allList = data || [];
+        setClubs(allList);
       } catch (error) {
-        console.error("Error fetching user or club data:", error);
-        Alert.alert("Error", "Failed to fetch user or club data");
+        console.error("Error fetching all club data:", error);
+        Alert.alert("Error", "Failed to fetch all clubs");
       }
     })();
   }, [userId]);
 
   useEffect(() => {
-    nav.setOptions({ headerShown: true, title: "Upcoming Meetings" });
-  });
+    if (!clubs) return;
+    (async () => {
+      try {
+        // Step 2: Fetch names for all clubs
+        const clubMeetingDetails = await Promise.all(
+          clubs.map(async (item) => {
+            const res = await axios.get(
+              `${process.env.EXPO_PUBLIC_IP}/club/${item.club_id}`
+            );
+            const clubNames = res.data.club_name;
 
-  const handlePress = async (meetingId) => {
-    router.push(`club/meetings/${meetingId}`);
-  };
+            const resMeet = await axios.get(
+              `${process.env.EXPO_PUBLIC_IP}/upcomingMeetings/${item.club_id}`
+            );
+            const MeetNames = resMeet.data;
+            if (resMeet.status != 200) return null;
+            return {
+              clubNames,
+              MeetNames,
+            };
+          })
+        );
 
-  const handlePre = async (meetingId) => {
-    try {
-      await AsyncStorage.setItem("meetingId", meetingId.toString());
-      router.push(`board/club/editMeeting/${meetingId}`);
-    } catch (error) {
-      console.error("Error saving meeting_id:", error);
-    }
-  };
-  console.log(clubMeetings)
-const isDefaultFilter =
-  selectedMonth === "Select Month" &&
-  selectedYear === "Select Year" &&
-  selectedClub === "All Names";
+        const flattenedMeetings = clubMeetingDetails.flatMap((club) => {
+          if (club == null) {
+            return [];
+          } else {
+            const flatClub = club.MeetNames.map((meeting) => ({
+              club: club.clubNames,
+              name: meeting.meeting_name,
+              date: meeting.meeting_date,
+              id: meeting.meeting_id,
+            }));
 
-const filteredMeetings = isDefaultFilter
-  ? clubMeetings
-  : clubMeetings.filter((meeting) => {
-      const meetingDate = new Date(meeting.meeting_date);
-      const meetingMonth = meetingDate.toLocaleString("default", { month: "long" }).trim();
-      const meetingYear = meetingDate.getFullYear().toString();
+            return flatClub;
+          }
+        });
 
-      const monthMatches =
-        selectedMonth === "Select Month" || selectedMonth === meetingMonth;
-      const yearMatches =
-        selectedYear === "Select Year" || selectedYear === meetingYear;
-      const clubMatches =
-        selectedClub === "All Names" || selectedClub === meeting.meeting_name;
+        setClubwithMeetings(flattenedMeetings);
+      } catch (error) {
+        console.error("Error fetching user or club data:", error);
+        Alert.alert("Error", "Failed to fetch user or club data");
+      }
+    })();
+  }, [clubs]);
 
-      return monthMatches && yearMatches && clubMatches;
+  useEffect(() => {
+    console.log(clubMeetings);
+    const allYears = clubMeetings.map((meeting) =>
+      new Date(meeting.date).getFullYear().toString()
+    );
+    const uniquesyears = new Set([]);
+    allYears.forEach((year) => {
+      uniquesyears.add(year);
     });
+    setYears(Array.from(uniquesyears));
 
-  console.log(clubMeetings);
-  const years = clubMeetings.map((m) =>
-    new Date(m.meeting_date).getFullYear().toString()
-  );
-  const months = clubMeetings.map((m) =>
-    new Date(m.meeting_date).toLocaleString("default", { month: "long" }).trim()
-  );
-  const clubsList = clubMeetings.map((m) => m.meeting_name);
+    const allMonths = clubMeetings.map((meeting) =>
+      new Date(meeting.date).toLocaleString("default", { month: "long" })
+    );
+    setMonths(Array.from(new Set(allMonths)));
+  }, [clubMeetings]);
 
-  const dropdownYears = ["Select Year", ...Array.from(new Set(years))];
-  const dropdownMonths = ["Select Month", ...Array.from(new Set(months))];
-  const dropdownClubs = ["All Names", ...Array.from(new Set(clubsList))];
+  useEffect(() => {
+    setSelectedMonth(months[0]);
+    setSelectedYear(years[0]);
+  }, [months, years]);
+  useEffect(() => {
+    if (!clubs) return;
+    (async () => {
+      setFiltered(
+        clubMeetings.filter((meeting) => {
+          const meetingDate = new Date(meeting.date);
+          const meetingMonth = meetingDate.toLocaleString("default", {
+            month: "long",
+          });
+          const meetingYear = meetingDate.getFullYear().toString();
+          const monthMatches = selectedMonth === meetingMonth;
+          const yearMatches = selectedYear === meetingYear;
+          return monthMatches && yearMatches && clubMeetings;
+        })
+      );
+    })();
+  }, [clubs, selectedMonth, selectedYear]);
+
   return (
     <View style={styles.container}>
       {/* Top Bar */}
@@ -133,103 +167,55 @@ const filteredMeetings = isDefaultFilter
         >
           <Text style={styles.addText}>+ Add new meeting</Text>
         </TouchableOpacity>
-<TouchableOpacity onPress={() => setFilterShow(!filterShow)}
-          style={styles.filterButton}>
-          <Text style={styles.filterText}>Filter <Filter/></Text>
-        </TouchableOpacity>
-        {filterShow && <View style={styles.sortingRow}>
-          <Picker
-            selectedValue={selectedMonth}
-            style={styles.picker}
-            onValueChange={(itemValue) => setSelectedMonth(itemValue)}
-          >
-            {dropdownMonths.map((month) => (
-              <Picker.Item key={month} label={month} value={month} />
-            ))}
-          </Picker>
 
-          <Picker
-            selectedValue={selectedYear}
-            style={styles.picker}
-            onValueChange={(itemValue) => setSelectedYear(itemValue)}
-          >
-            {dropdownYears.map((year) => (
-              <Picker.Item key={year} label={year} value={year} />
-            ))}
-          </Picker>
-
-          <Picker
-            selectedValue={selectedClub}
-            style={styles.picker}
-            onValueChange={(itemValue) => setSelectedClub(itemValue)}
-          >
-            {dropdownClubs.map((club) => (
-              <Picker.Item key={club} label={club} value={club}></Picker.Item>
-            ))}
-          </Picker>
-        </View>}
         {/* Sorting Dropdowns */}
-        
+        <FilterButton onFilter={() => setFilterShow(!filterShow)} />
+        {filterShow && (
+          <View>
+            <Picker
+              selectedValue={selectedYear}
+              style={styles.picker}
+              onValueChange={(itemValue) => setSelectedYear(itemValue)}
+            >
+              {years.map((year) => (
+                <Picker.Item key={year} label={year} value={year} />
+              ))}
+            </Picker>
+            <Picker
+              selectedValue={selectedMonth}
+              style={styles.picker}
+              onValueChange={(itemValue) => setSelectedMonth(itemValue)}
+            >
+              {months.map((month) => (
+                <Picker.Item key={month} label={month} value={month} />
+              ))}
+            </Picker>
+          </View>
+        )}
 
         {/* Meeting Buttons */}
         {filteredMeetings.map((meeting, index) => {
-          const d = new Date(meeting.meeting_date);
-          const today = new Date();
-           const isEnded = d < today;
-
-          const dayName = new Intl.DateTimeFormat("en-AU", {
-            weekday: "long",
-            timeZone: "Australia/Sydney",
-          }).format(d);
-         
-          const dateStr = new Intl.DateTimeFormat("en-AU", {
-            year: "numeric",
-            month: "2-digit",
-            day: "2-digit",
-            timeZone: "Australia/Sydney",
-          }).format(d);
+          const date = new Date(meeting.date).toISOString().split("T")[0];
           return (
-            
-    <View key={meeting.meeting_id} style={styles.meetingRow}>
-    { !isEnded && ( <TouchableOpacity onPress={() => handlePre(meeting.meeting_id)}>
-        <Pencil />
-      </TouchableOpacity>)}
-
-      <TouchableOpacity
-        style={[
-          styles.meetingCard,
-          isEnded ? styles.endedCard : styles.activeCard,
-        ]}
-        onPress={() => handlePress(meeting.meeting_id)}
-      >
-        <View style={styles.meetingTextBlock}>
-          <Text
-            style={[
-              styles.meetingClub,
-              isEnded ? styles.endedText : styles.activeText,
-            ]}
-          >
-            {meeting.meeting_name} #{meeting.meeting_id}
-          </Text>
-          <Text
-            style={[
-              styles.meetingDate,
-              isEnded ? styles.endedText : styles.activeText,
-            ]}
-          >
-            Date: {dateStr} {dayName}
-          </Text>
-        </View>
-
-        {isEnded && (
-          <View style={styles.endedTag}>
-            <Text style={styles.endedTagText}>Ended</Text>
-          </View>
-        )}
-      </TouchableOpacity>
-    </View>
-  );
-})}
+            <View key={meeting.id} style={styles.row}>
+              <TouchableOpacity onPress={() => router.push({ pathname: '/board/club/editMeeting/[meetingID]', params: { meetingID: meeting.id } })}>
+                <Pencil />
+              </TouchableOpacity>
+              <TouchableOpacity
+                key={index}
+                style={styles.meetingBlock}
+                onPress={() => {
+                  console.log(meeting.id);
+                  router.navigate({ pathname: '/club/meetings/[meetingID]', params: { meetingID: meeting.id } });
+                }}
+              >
+                <Text style={styles.meetingClub}>#{meeting.id}</Text>
+                <Text style={styles.meetingName}>{meeting.name}</Text>
+                <Text style={styles.meetingDate}>Date: {date}</Text>
+              </TouchableOpacity>
+            </View>
+          );
+        })}
       </ScrollView>
 
       {/* Bottom Navigation */}
@@ -248,19 +234,22 @@ const filteredMeetings = isDefaultFilter
 };
 
 const styles = StyleSheet.create({
-
-  add: {
+  row: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginHorizontal: 16,
+    marginVertical: 8,
     marginTop: 20,
   },
-  memberRow: {
-  flexDirection: "row",
-  alignItems: "center",
-  marginVertical: 5,
-},
-
+  add: {
+    marginTop: 10,
+    flex: 1,
+  },
   addText: {
     color: "#065395",
     fontSize: 15,
+    flex: 1,
+    textAlign: "right",
   },
   container: {
     flex: 1,
@@ -289,11 +278,25 @@ const styles = StyleSheet.create({
   content: {
     paddingHorizontal: 20,
 
-    marginBottom: 20,  },
+    marginBottom: 20,
+  },
   symbol: {
     fontSize: 40,
   },
-
+  meetingHeaderBlock: {
+    marginTop: 100,
+    backgroundColor: "#065395",
+    padding: 15,
+    borderRadius: 10,
+    alignItems: "center",
+    position: "relative",
+    zIndex: -9999,
+  },
+  meetingHeaderText: {
+    fontSize: 20,
+    fontWeight: "bold",
+    color: "#ffffff",
+  },
   sortingRow: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -301,23 +304,19 @@ const styles = StyleSheet.create({
   },
   picker: {
     flex: 1,
-    height: 50,
+    backgroundColor: "#F1F6F5",
+    marginBottom: 5,
   },
   meetingBlock: {
-    marginTop: 15,
+    flex: 1,
+    padding: 12,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#E5E7EB",
     backgroundColor: "#8A7D6A",
-    padding: 15,
-    borderTopStartRadius: 10,
-    borderBottomStartRadius: 10,
-    flex: 4,
   },
   meetingClub: {
     fontWeight: "600",
-    color: "#ffffff",
-    fontSize: 20,
-  },
-  status:{
-       fontWeight: "600",
     color: "#ffffff",
     fontSize: 20,
   },
@@ -346,93 +345,6 @@ const styles = StyleSheet.create({
     paddingBottom: 300,
     fontSize: 25,
   },
-   filterButton: {
-    flex:1,
-    marginVertical:10,
-    padding:5,
-    borderRadius:8,
-    backgroundColor: "#065395",
-    alignItems:"center",
-    justifyContent:"center"
-  },
-  filterText: {
-    color: "white",
-    fontSize: 20,
-  },
-  sortingRow: {
-    justifyContent: "space-between",
-  },
-  picker: {
-    flex: 1,
-    backgroundColor:"#F1F6F5",
-    marginBottom:5
-  },
-  meetingRow: {
-  flexDirection: "row",
-  alignItems: "center",
-  marginTop: 12,
-},
-
-meetingCard: {
-  flexDirection: "row",
-  justifyContent: "space-between",
-  alignItems: "center",
-  flex: 1,
-  marginLeft: 8,
-  borderRadius: 10,
-  paddingVertical: 10,
-  paddingHorizontal: 12,
-  shadowColor: "#000",
-  shadowOffset: { width: 0, height: 1 },
-  shadowOpacity: 0.2,
-  shadowRadius: 2,
-  elevation: 2,
-},
-
-activeCard: {
-  backgroundColor: "#8A7D6A", // brown-gray
-},
-
-endedCard: {
-  backgroundColor: "#F4C542", // light yellow
-},
-
-meetingTextBlock: {
-  flexShrink: 1,
-},
-
-meetingClub: {
-  fontSize: 18,
-  fontWeight: "600",
-},
-
-meetingDate: {
-  marginTop: 3,
-  fontSize: 15,
-},
-
-activeText: {
-  color: "#fff",
-},
-
-endedText: {
-  color: "#000",
-},
-
-endedTag: {
-  backgroundColor: "#AFABA3",
-  paddingHorizontal: 10,
-  paddingVertical: 10,
-  borderRadius: 8,
-  alignSelf: "center",
-},
-
-endedTagText: {
-  color: "#fff",
-  fontWeight: "bold",
-  fontSize: 14,
-},
-
 });
 
 export default ProfileScreen;
