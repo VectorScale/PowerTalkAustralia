@@ -10,12 +10,12 @@ const { authenticateToken, requireRole, limiter } = require("./config/security")
  
 const userRoutes = require("./routes/users");
 const profileRoutes = require("./routes/profile");
-const boardRoutes = require("./routes/board");
 const projectRoutes = require("./routes/projects");
+const boardRoutes = require("./routes/board");
+const councilRoutes = require("./routes/council")
+const clubRoutes = require("./routes/clubs");
 const meetingRoutes = require("./routes/meeting");
 const attendanceRoutes = require("./routes/attendance")
-const clubRoutes = require("./routes/clubs");
-const councilRoutes = require("./routes/council")
 
 // Initialize dayjs plugins
 dayjs.extend(dayjsRecur);
