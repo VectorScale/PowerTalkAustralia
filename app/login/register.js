@@ -130,7 +130,7 @@ const RegisterForm = () => {
         `${process.env.EXPO_PUBLIC_IP}/users/register`,
         payload
       );
-      Alert.alert("Success", "Registration successful");
+      Alert.alert("Registration Successful", "A Board Member will send your credentials to your provided email address");
       reset(); // clear the form after successful registration
       router.back();
     } catch (error) {

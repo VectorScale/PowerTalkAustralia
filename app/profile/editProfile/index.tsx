@@ -148,7 +148,7 @@ const EditProfile = () => {
     const { note, ...rest } = data;
     const payload = {
       ...rest,
-      notes: note,  
+      notes: note,
       profile_id,
     };
 
@@ -206,7 +206,10 @@ const EditProfile = () => {
                 lines: 1,
                 multiline: false,
                 rule: {
-                  maxLength: { value: 20, message: "Enter a valid Phone Number" },
+                  maxLength: {
+                    value: 20,
+                    message: "Enter a valid Phone Number",
+                  },
                   pattern: {
                     value: /[\d\s]{10,20}$/,
                     message: "Enter a valid phone number",
@@ -229,7 +232,10 @@ const EditProfile = () => {
                 multiline: false,
                 rule: {
                   maxLength: { value: 4, message: "Enter a valid postcode" },
-                  pattern: { value: /\d{4}$/, message: "Enter a valid postcode" },
+                  pattern: {
+                    value: /\d{4}$/,
+                    message: "Enter a valid postcode",
+                  },
                 },
               },
               {
@@ -240,33 +246,43 @@ const EditProfile = () => {
                 lines: 3,
                 multiline: true,
               },
-            ].map(({ field, placeholder, label, lines, multiline, autocomplete, rule }) => (
-              <View key={field} style={styles.inputs}>
-                {label && <FormLabel>{label}</FormLabel>}
-                <Controller
-                  key={field}
-                  control={control}
-                  name={field as Names}
-                  render={({ field: { onChange, value } }) => (
-                    <FormInput
-                      autoComplete={autocomplete}
-                      placeholder={placeholder}
-                      onChangeText={onChange}
-                      value={value}
-                      autoCapitalize="none"
-                      multiline={multiline}
-                      lines={lines}
-                    />
+            ].map(
+              ({
+                field,
+                placeholder,
+                label,
+                lines,
+                multiline,
+                autocomplete,
+                rule,
+              }) => (
+                <View key={field} style={styles.inputs}>
+                  {label && <FormLabel>{label}</FormLabel>}
+                  <Controller
+                    key={field}
+                    control={control}
+                    name={field as Names}
+                    render={({ field: { onChange, value } }) => (
+                      <FormInput
+                        autoComplete={autocomplete}
+                        placeholder={placeholder}
+                        onChangeText={onChange}
+                        value={value}
+                        autoCapitalize="none"
+                        multiline={multiline}
+                        lines={lines}
+                      />
+                    )}
+                    rules={rule}
+                  />
+                  {errors[field as Names] && isSubmitted && (
+                    <Text style={styles.errorText}>
+                      {errors[field as Names]?.message?.toString()}
+                    </Text>
                   )}
-                  rules={rule}
-                />
-                {errors[field as Names] && isSubmitted && (
-                  <Text style={styles.errorText}>
-                    {errors[field as Names]?.message?.toString()}
-                  </Text>
-                )}
-              </View>
-            ))}
+                </View>
+              )
+            )}
           </View>
           <View style={styles.function}>
             <TouchableOpacity onPress={() => setSharing(true)}>
@@ -312,14 +328,15 @@ const EditProfile = () => {
               </View>
               <Text style={styles.label}>Hide Address</Text>
             </View>
+            <View>
+              <Text style={styles.disclaimer}>
+                All information in the member list is for association use only
+                and may not be shared outside the association without the
+                express permission of the individual
+              </Text>
+            </View>
             <View style={styles.modalFunction}>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.disclaimer}>
-                  All information in the member list is for association use only
-                  and may not be shared outside the association without the
-                  express permission of the individual
-                </Text>
-              </View>
+              <View style={{ flex: 1 }}></View>
               <Button onPress={() => handleSharing()}>Done</Button>
             </View>
           </View>
@@ -392,10 +409,7 @@ const styles = StyleSheet.create({
   },
   disclaimer: {
     alignSelf: "center",
-    fontSize: 6,
-    textAlign: "right",
-    flex: 1,
-    paddingLeft: 10,
-    paddingTop: "10%",
+    fontSize: 10,
+    paddingHorizontal:20,
   },
 });
