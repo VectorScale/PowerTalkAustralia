@@ -8,6 +8,7 @@ import {
   StyleSheet,
   ScrollView,
   Alert,
+  ActivityIndicator,
 } from "react-native";
 import { Picker } from "@react-native-picker/picker";
 import { useNavigation } from "@react-navigation/native";
@@ -38,6 +39,8 @@ const ClubMembersPage = () => {
 
   const [level, setLevel] = useState(0);
   const levelsReadable = ["Members", "Board", "Council", "Association"];
+
+  const [loaded, setLoaded] = useState(false);
 
 
   useEffect(() => {
@@ -98,11 +101,21 @@ const ClubMembersPage = () => {
 
   useEffect(() => {
     if (!selectedClubId) { setSorted(ids); return; }
+    setLoaded(false);
     (async () => {
       try {
         await axios
           .get(`${process.env.EXPO_PUBLIC_IP}/clubBoard/${selectedClubId}`)
-          .then((res) => setClubIds(res.data));
+          .then((res) => {
+            if (res.status == 200) {
+              setClubIds(res.data);
+            }
+            else {
+              setDetails([]);
+              setSortedDetails([]);
+              setLoaded(true);
+            }
+          });
       } catch (error) {
         console.error("Error fetching member details:", error);
         Alert.alert("Error", "Failed to fetch Club Sorting");
@@ -115,7 +128,7 @@ const ClubMembersPage = () => {
       setSorted(
         ids.filter((item: any) => {
           let allow = false;
-            if (item.club_id == selectedClubId) allow = true;
+          if (item.club_id == selectedClubId) allow = true;
           return allow;
         })
       );
@@ -134,6 +147,7 @@ const ClubMembersPage = () => {
   }, [clubIds]);
 
   useEffect(() => {
+    if(sortedIds.length==0) return;
     (async () => {
       try {
         const MemberDetails = await Promise.all(
@@ -167,6 +181,7 @@ const ClubMembersPage = () => {
           setObj.add(member);
         });
         setDetails(Array.from(setObj));
+        setLoaded(true);
       } catch (error) {
         console.error("Error fetching member details:", error);
         Alert.alert("Error", "Failed to fetch Member Details");
@@ -175,12 +190,13 @@ const ClubMembersPage = () => {
   }, [sortedIds]);
 
   useEffect(() => {
+    if (loaded)
     nav.setOptions({ title: `${levelsReadable[level]} (${memberDetails.length})` });
-  }, [memberDetails]);
+  }, [memberDetails, loaded]);
 
 
   useEffect(() => {
-    if (sortBy == "None") setSortedDetails([]);
+  if (sortBy == "None" || memberDetails.length == 0) {setSortedDetails([]); return;}
     const sortedMembers = memberDetails.sort((a: any, b: any) => {
       if (sortBy == "Z-A") {
         const firstCompare = a.lastName.localeCompare(b.lastName);
@@ -197,13 +213,15 @@ const ClubMembersPage = () => {
           return b.firstName.localeCompare(a.firstName);
         }
       } else if (sortBy == "New") {
-          return a.joinDate.localeCompare(b.joinDate);
+        return a.joinDate.localeCompare(b.joinDate);
       } else if (sortBy == "Old") {
-          return b.joinDate.localeCompare(a.joinDate);
+        return b.joinDate.localeCompare(a.joinDate);
       }
     });
     setSortedDetails(sortedMembers);
-  }, [sortBy]);
+    console.log("Loaded2");
+    setLoaded(true);
+  }, [sortBy, memberDetails]);
 
   return (
     <View style={styles.container}>
@@ -259,9 +277,9 @@ const ClubMembersPage = () => {
           </Picker>
         </View>)}
 
-        {(sortedDetails.length > 0 ? sortedDetails : memberDetails).map((member: any, index: any) => (
+        {loaded ? (memberDetails.length > 0 ? (sortedDetails.length > 0 ? sortedDetails : memberDetails).map((member: any, index: any) => (
           <View
-              key={index} style={styles.memberBlock}>
+            key={index} style={styles.memberBlock}>
             <TouchableOpacity
               style={styles.memberInfo}
               onPress={() =>
@@ -285,7 +303,8 @@ const ClubMembersPage = () => {
                 </Text>)}
             </View>
           </View>
-        ))}
+        )) : <Text style={{ flex: 1, textAlign: "center", margin: 20, fontSize: 20, fontWeight: "bold" }}>No Members Match Given Filters</Text>) :
+          <ActivityIndicator size="large" color="#065395" />}
       </ScrollView>
       <BottomNav
         number={3}

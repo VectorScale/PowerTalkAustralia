@@ -73,12 +73,12 @@ const ClubBoardMemberPage = () => {
     if (clubId == "") return;
     (async () => {
       try {
-        console.log(clubId);
-        // Step 1: Get club list from user info
+        // Step 1: Fetch the IDs of Members in a Club
         const clubMembers = await axios.get(
           `${process.env.EXPO_PUBLIC_IP}/clubBoard/${clubId}`
         );
 
+        // Step 2: Fetch the details of each Member
         const MemberDetails = await Promise.all(
           clubMembers.data.map(async (item) => {
             const res = await axios.get(

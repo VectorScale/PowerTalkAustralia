@@ -39,7 +39,11 @@ const ProjectDetailPage = () => {
           `${process.env.EXPO_PUBLIC_IP}/projects/`,
           payload
         );
-        setProject(data);
+        if (data.status == 200){
+        setProject(data);}
+        else {
+          Alert.alert("No Projects", "Please Contact Support");
+        }
       } catch (error) {
         console.error("Error fetching projects:", error);
         Alert.alert("Error", "Failed to load projects");
@@ -200,7 +204,7 @@ const ProjectDetailPage = () => {
     <View style={styles.background}>
       <View style={styles.container}>
         <ScrollView contentContainerStyle={styles.content}>
-          <Text>Click a project number to provide feedback</Text>
+          <Text style={{flex:1,textAlign:"center",margin:5, fontSize:15}}>Click a project number to provide feedback</Text>
           {/* Table Header */}
           <View style={styles.tableRowHeader}>
             <Text style={[styles.projectCell, styles.tableHeaderText]}>#</Text>
