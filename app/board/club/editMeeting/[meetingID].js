@@ -103,7 +103,8 @@ const EditForm = () => {
         `${process.env.EXPO_PUBLIC_IP}/meeting/edit`,payload
       );
 
-      console.log(access.status);
+      Alert.alert("Success", "Meeting Updated");
+      router.back();
     } catch (error) {
       Alert.alert("Error", "Failed to add member data");
       console.error(error.message);

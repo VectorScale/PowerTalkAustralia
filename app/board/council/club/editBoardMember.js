@@ -34,8 +34,7 @@ const CouncilAddBoardMembersPage = () => {
     (async () => {
       try {
           const res = await axios.get(`${process.env.EXPO_PUBLIC_IP}/member/${params.memberID}`);
-        setMember(res.data);
-        navigation.setOptions({title: `${res.data.first_name} ${res.data.last_name}`})
+          setMember(res.data);
       } catch (error) {
         Alert.alert("Error", "Failed to load User");
       }
@@ -182,10 +181,7 @@ const CouncilAddBoardMembersPage = () => {
         <ScrollView style={styles.content}>
           {/* 蓝色标题块 - 显示 Assign Board Member */}
           <View style={styles.headerBlock}>
-            <TouchableOpacity onPress={handleBackPress} style={styles.backButton}>
-              <Text style={styles.backButtonText}>←</Text>
-            </TouchableOpacity>
-            <Text style={styles.headerText}>Assign Board Member</Text>
+            <Text style={styles.headerText}>{member.first_name} {member.last_name}</Text>
           </View>
 
 

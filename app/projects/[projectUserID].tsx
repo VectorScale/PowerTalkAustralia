@@ -24,7 +24,6 @@ const MembersProjectPage1 = () => {
 
   const local = useLocalSearchParams();
   const projectUserID = local.projectUserID;
-  const projectLevel = local.projectLevel
 
   useEffect(() => {
     (async () => {
@@ -49,7 +48,7 @@ const MembersProjectPage1 = () => {
 
   useEffect(() => {
     nav.setOptions({ headerShown: true });
-  }, [projectLevel]);
+  }, []);
 
 
   const handleLevelPress = async (level: number) => {

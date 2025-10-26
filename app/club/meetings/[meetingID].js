@@ -90,7 +90,7 @@ const MeetingDetails = () => {
           }).format(new Date(meeting[0].meeting_date))}
         </Text>
         <Text style={styles.value}>
-          <Finger /> Meeting Time: {meeting[0].meeting_time.slice(0, 5)}{" "}
+          <Finger /> Meeting Time: {meeting[0].meeting_time?meeting[0].meeting_time.slice(0, 5):"Not Set"}
           {meeting[0].arrival_time && "(Arrive at " + meeting[0].arrival_time + ")"}
         </Text>
         <Text style={styles.value}>
