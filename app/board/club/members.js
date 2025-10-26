@@ -15,6 +15,24 @@ import { useRouter } from "expo-router";
 
 import { useIsFocused } from "@react-navigation/native";
 
+const api = axios.create({
+  baseURL: process.env.EXPO_PUBLIC_IP,
+});
+
+// Add token to requests automatically
+api.interceptors.request.use(
+  async (config) => {
+    const token = await AsyncStorage.getItem('userToken');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
+
 const ClubBoardMemberPage = () => {
   const router = useRouter();
 
@@ -128,10 +146,10 @@ const ClubBoardMemberPage = () => {
         user_id,
         paid,
         paid_date,
-        guest,
+        guest
       };
 
-      await axios.post(
+      await api.post(
         `${process.env.EXPO_PUBLIC_IP}/updatePayment/`,
         payload
       );

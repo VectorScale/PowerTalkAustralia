@@ -52,6 +52,7 @@ const RegisterForm = () => {
       );
       console.log("Server Response:", memberResponse.data.message);
       Alert.alert("Success", "Membership successful");
+      console.log(memberResponse.data.monthlyMembers);
       website_login = yyyy + mm + memberResponse.data.monthlyMembers;
       password =
         data.first_name.charAt(0).toUpperCase() +
@@ -125,14 +126,12 @@ const RegisterForm = () => {
       );
     }
 
+
     try {
       const registerResponse = await axios.post(
         `${process.env.EXPO_PUBLIC_IP}/users/register`,
         payload
       );
-      Alert.alert("Registration Successful", "A Board Member will send your credentials to your provided email address");
-      reset(); // clear the form after successful registration
-      router.back();
     } catch (error) {
       console.error(
         "Error submitting form:",
@@ -143,6 +142,106 @@ const RegisterForm = () => {
         error.response?.data?.message || "Registration failed"
       );
     }
+        try {
+      const projectLevels1 = await axios.post(
+        `${process.env.EXPO_PUBLIC_IP}/member/projects/1`,
+        payload
+      );
+      console.log("Success Level 1 Projects Added")
+    } catch (error) {
+      console.error(
+        "Error submitting form:",
+        error.response ? error.response.data : error.message
+      );
+      Alert.alert(
+        "Error",
+        error.response?.data?.message || "Project Creation failed"
+      );
+    }
+    try {
+      const projectLevels2 = await axios.post(
+        `${process.env.EXPO_PUBLIC_IP}/member/projects/2`,
+        payload
+      );
+      console.log("Success Level 2 Projects Added")
+    } catch (error) {
+      console.error(
+        "Error submitting form:",
+        error.response ? error.response.data : error.message
+      );
+      Alert.alert(
+        "Error",
+        error.response?.data?.message || "Project Creation failed"
+      );
+    }
+    try {
+      const projectLevels3 = await axios.post(
+        `${process.env.EXPO_PUBLIC_IP}/member/projects/3`,
+        payload
+      );
+      console.log("Success Level 3 Projects Added")
+    } catch (error) {
+      console.error(
+        "Error submitting form:",
+        error.response ? error.response.data : error.message
+      );
+      Alert.alert(
+        "Error",
+        error.response?.data?.message || "Project Creation failed"
+      );
+    }
+    try {
+      const projectLevels1 = await axios.post(
+        `${process.env.EXPO_PUBLIC_IP}/member/projects/3a`,
+        payload
+      );
+      console.log("Success Level 3a Projects Added")
+    } catch (error) {
+      console.error(
+        "Error submitting form:",
+        error.response ? error.response.data : error.message
+      );
+      Alert.alert(
+        "Error",
+        error.response?.data?.message || "Project Creation failed"
+      );
+    }
+    try { 
+      const projectLevels4 = await axios.post(
+        `${process.env.EXPO_PUBLIC_IP}/member/projects/4`,
+        payload
+      );
+      console.log("Success Level 4 Projects Added")
+    } catch (error) {
+      console.error(
+        "Error submitting form:",
+        error.response ? error.response.data : error.message
+      );
+      Alert.alert(
+        "Error",
+        error.response?.data?.message || "Project Creation failed"
+      );
+    }
+    try {
+      const projectLevels4a = await axios.post(
+        `${process.env.EXPO_PUBLIC_IP}/member/projects/4a`,
+        payload
+      );
+      console.log("Success Level 4a Projects Added")
+      Alert.alert("Registration Successful", "A Board Member will send your credentials to your provided email address");
+      reset(); // clear the form after successful registration
+      router.back();
+    } catch (error) {
+      console.error(
+        "Error submitting form:",
+        error.response ? error.response.data : error.message
+      );
+      Alert.alert(
+        "Error",
+        error.response?.data?.message || "Project Creation failed"
+      );
+    } 
+    
   };
 
   return (

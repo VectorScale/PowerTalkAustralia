@@ -17,6 +17,24 @@ import { useRouter } from "expo-router";
 import { useIsFocused } from "@react-navigation/native";
 import { useKeyboard } from "@react-native-community/hooks";
 
+const api = axios.create({
+  baseURL: process.env.EXPO_PUBLIC_IP,
+});
+
+// Add token to requests automatically
+api.interceptors.request.use(
+  async (config) => {
+    const token = await AsyncStorage.getItem('userToken');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
+
 const ClubGuestsPage = () => {
   const router = useRouter();
 
@@ -26,6 +44,7 @@ const ClubGuestsPage = () => {
 
   const [clubId, setClubId] = useState("");
   const [userId, setUserId] = useState("");
+  const [token, setToken] = useState("");
 
   const [reload, setReload] = useState(0);
 
@@ -33,8 +52,12 @@ const ClubGuestsPage = () => {
     (async () => {
       try {
         const storedUserId = await AsyncStorage.getItem("userId");
+        const storedtoken = await AsyncStorage.getItem("userToken");
         if (storedUserId) {
           setUserId(storedUserId);
+        }
+        if (storedtoken) {
+          setToken(storedtoken);
         }
       } catch (error) {
         console.error("Error fetching userId from storage:", error);
@@ -117,10 +140,10 @@ const ClubGuestsPage = () => {
   const handleIncrement = async (user_id, guest) => {
     const payload = {
       user_id,
-      guest
+      guest,
     };
     try {
-      const res = await axios.post(
+      const res = await api.post(
         `${process.env.EXPO_PUBLIC_IP}/guest/increment`, payload
       );
       setReload(reload + 1);

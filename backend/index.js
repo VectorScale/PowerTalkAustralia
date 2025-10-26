@@ -6,12 +6,69 @@ const fs = require("fs");
 const path = require("path");
 const dayjs = require("dayjs");
 const dayjsRecur = require("dayjs-recur");
+const jwt = require('jsonwebtoken');
+const bcrypt = require('bcrypt');
+const rateLimit = require('express-rate-limit');
+
+
+const limiter = rateLimit({
+  windowMs: 10 * 1000, // 15 minutes
+  max: 100, // Limit each IP to 100 requests per `window` (here, per 15 minutes
+  message: "Too many requests from this IP, please try again after 15 minutes",
+});
+
+/**
+ * Authenticates tokens for routes that need authentication
+ * @param {object} req the request object, that holds the requests information, like the header that is used for authentification
+ * @param {object} res the response object. WHich holds the 
+ * @param {function} next 
+ * @returns sends error response or call next so the API call will go through
+ */
+function authenticateToken(req, res, next) {
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
+  
+  if (!token) {
+    return res.status(401).json({ error: 'Access token required' });
+  }
+  try{
+    jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
+      req.user = user; // Add user info to request object
+      console.log("Verification of", token, "Successful")
+      next();
+  });
+  }catch{
+    return res.status(403).json({ error: 'Invalid or expired token' });
+  }
+
+  
+}
+
+function requireRole(role) {
+  return (req, res, next) => {
+    //console.log(req)
+    const authHeader = req.headers['authorization'];
+    //console.log(req.headers['authorization'])
+    const token = authHeader && authHeader.split(' ')[1]; 
+    const { access } = jwt.verify(token, process.env.JWT_SECRET);
+    //console.log(access);
+    if (!req.headers['authorization'] || access != role) {
+      return res.status(403).json({ 
+        error: 'Insufficient permissions',
+        required: role,
+        current: req.user ? req.user.access : 'none'
+      });
+    }
+    next();
+  };
+}
 
 dayjs.extend(dayjsRecur);
 
 const app = express();
 app.use(cors());
 app.use(express.json());
+app.use(limiter);
 
 const db = mysql.createConnection({
   host: process.env.DB_SERVER,
@@ -47,6 +104,15 @@ db.connect((err) => {
     }
   }); */
 });
+//token
+app.post("/users/verify-token", authenticateToken, (req, res) => {
+  //console.log("ran")
+  res.json({ 
+    valid: true, 
+    user: req.user,
+    message: "Token is valid" 
+  });
+});
 
 //Board Member Access
 app.get("/boardMemberAccess/:id", async (req, res) => {
@@ -62,12 +128,14 @@ app.get("/boardMemberAccess/:id", async (req, res) => {
 });
 
 //Registers a members login and password into the member_logins table. This is done when a club treasurer confirms that the member has paid.
-app.post("/users/register", (req, res) => {
+app.post("/users/register", async (req, res) => {
   let { user_id, website_login, password } = req.body;
+  const saltRounds = 11;
+  const passwordHash = await bcrypt.hash(password, saltRounds);
 
   const loginQuery =
     "INSERT INTO member_logins (user_id, website_login, password) VALUES (?, ?, ?)";
-  db.query(loginQuery, [user_id, website_login, password], (err, result) => {
+  db.query(loginQuery, [user_id, website_login, passwordHash], (err, result) => {
     if (err) {
       console.error("Database error:", err);
       return res.status(500).json({ message: "Database Error" });
@@ -113,6 +181,7 @@ app.post("/users/checkMonthlyMembers", (req, res) => {
     mm;
 
   db.query(monthlyMembersQuery, (err, result) => {
+    console.log(result)
     if (err) {
       console.error("Database error:", err);
       return res.status(500).json({ message: "Database Error" });
@@ -236,22 +305,43 @@ app.post("/user/member", (req, res) => {
     return res.status(200).json({ message: "guest Updated Successfully" });
   });
 });
-app.post("/users/login", (req, res) => {
+app.post("/users/login", async (req, res) => {
   const { website_login, password } = req.body;
+
 
   // SQL query with placeholders for Email and Password
   const loginQuery =
-    "SELECT * FROM member_logins WHERE website_login = ? AND password = ?";
+    "SELECT member_logins.user_id, member_logins.website_login, member_logins.password, board_members.level_of_access FROM member_logins LEFT JOIN board_members ON member_logins.user_id=board_members.user_id WHERE website_login = ?";
 
   db.query(loginQuery, [website_login, password], (err, result) => {
     const user = result[0];
+    //check if the password is encrypted in database otherwise it will use plaintext
+    if(/^$/.test(user.password)){
+      const isValidPassword = bcrypt.compare(password, user.password);
+      if (!isValidPassword) {
+        return res.status(401).json({ error: 'Invalid credentials' });
+      }
+    }
+    const token = jwt.sign(
+      { 
+        userId: user.id, 
+        username: user.website_login,
+        access: user.level_of_access
+      },
+      process.env.JWT_SECRET,
+      { expiresIn: '24h' }
+    );
 
     if (err) {
       console.error("Database error:", err);
       return res.status(500).json({ message: "Database Error" });
     }
+
     if (result.length > 0) {
+      //console.log(token)
       res.json({
+        success: true,
+        token: token,
         user_id: user.user_id,
         website_login: user.website_login,
         password: user.password,
@@ -260,6 +350,7 @@ app.post("/users/login", (req, res) => {
     } else {
       return res.status(201).json({ message: "Invalid Credentials" });
     }
+
   });
 });
 app.get("/member/:id", (req, res) => {
@@ -847,24 +938,26 @@ app.post("/member/projects/1", async (req, res) => {
     "Trainee Evaluator",
     "Self=Evaluation",
   ];
-  const { senderId } = req.body;
+  let { user_id, website_login, password } = req.body;
+  console.log(user_id)
   for (const i = 0; i < projectnames.length; i++) {
     if (i == 2 || i == 11) {
       for (const j = 0; j < 3; j++) {
         const query =
-          "INSERT INTO `development_program` (user_id, project_number, project_title, program_level) VALUES (?, ?, ?, ?)";
+          "INSERT INTO development_program (user_id, project_number, project_title, program_level) VALUES (?, ?, ?, ?)";
         db.query(query, [senderId, i, projectnames[i], 1], (err, result) => {
           if (err) {
             console.error("Database error:", err);
             return res.status(500).json({ message: "Database Error" });
           }
+          console.log(result)
           res.json(result);
         });
       }
     } else {
       const query =
-        "INSERT INTO `development_program` (user_id, project_number, project_title, program_level) VALUES (?, ?, ?, ?)";
-      db.query(query, [senderId, i, projectnames[i], 1], (err, result) => {
+        "INSERT INTO development_program (user_id, project_number, project_title, program_level) VALUES (?, ?, ?, ?)";
+      db.query(query, [user_id, i, projectnames[i], 1], (err, result) => {
         if (err) {
           console.error("Database error:", err);
           return res.status(500).json({ message: "Database Error" });

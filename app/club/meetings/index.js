@@ -230,6 +230,7 @@ const ProfileScreen = () => {
     }
   };
 
+
   return (
     <View style={styles.container}>
       <ScrollView style={styles.content}>

@@ -12,6 +12,40 @@ import { useNavigation } from "expo-router";
 import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
+const api = axios.create({
+  baseURL: process.env.EXPO_PUBLIC_IP,
+});
+
+// Add token to requests automatically
+api.interceptors.request.use(
+  async (config) => {
+    const token = await AsyncStorage.getItem('userToken');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
+
+// Handle token expiration
+api.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    if (error.response?.status === 403) {
+      // Token expired or invalid
+      await AsyncStorage.removeItem('userToken');
+      await AsyncStorage.removeItem('userId');
+      Alert.alert("Session Expired", "Please login again");
+      // You might want to redirect to login screen here
+    }
+    return Promise.reject(error);
+  }
+);
+
+
 const LoginForm = () => {
   const router = useRouter();
   const nav = useNavigation();
@@ -31,14 +65,43 @@ const LoginForm = () => {
     defaultValues: values,
   });
 
-  const handleLogin = async (data: any) => {
+  useEffect(() => {
+    checkExistingLogin();
+  }, []);
+
+  const checkExistingLogin = async () => {
+  try {
+    const token = await AsyncStorage.getItem('userToken');
+    if (token) {
+      // Verify token is still valid
+      console.log("Check logged In")
+      const response = await api.post("/users/verify-token");
+      console.log(response)
+      if (response.data.valid) {
+        // Token is valid, redirect to appropriate page
+        //Could add 
+      }
+    }
+  } catch (error) {
+    // Token is invalid, clear storage
+    //await AsyncStorage.removeItem('userToken');
+    //await AsyncStorage.removeItem('userId');
+    console.log("No valid token found");
+  }
+};
+  const tokenLogin= async (data:any) => {
+    
+  }
+
+  const handleLogin = async (data:any) => {
     try {
-      const login = await axios.post(
+      const login = await api.post(
         `${process.env.EXPO_PUBLIC_IP}/users/login`,
         {
           website_login: data.website_login.trim(),
           password: data.password.trim(),
         }
+        
       );
       if (login.status == 201){
         Alert.alert("Try Again", "Incorrect Member Number or Password")
@@ -49,12 +112,14 @@ const LoginForm = () => {
       const clubAccess = await axios.get(
         `${process.env.EXPO_PUBLIC_IP}/clubAccess/${member.data.user_id}`
       );
-
       if (member.status == 401) {
         Alert.alert("Login Failed", member.data.message);
       } else {
-        // Store user data in AsyncStorag
+        // Store user data in AsyncStorage
+        await AsyncStorage.setItem('userToken', login.data.token);
         await AsyncStorage.setItem("userId", member.data.user_id.toString());
+        const response = await api.post(`${process.env.EXPO_PUBLIC_IP}/users/verify-token`);
+        console.log(response)
         router.dismissAll();
         if (member.data.paid == "1" && clubAccess.data.level_of_access == null) {
           router.replace({
@@ -134,7 +199,7 @@ const LoginForm = () => {
         </View>
 
         <View style={styles.function}>
-          <Button onPress={() => router.push("/login/register")}>Register</Button>
+          <Button onPress={() => router.push("./login/register")}>Register</Button>
 
           <Button onPress={handleSubmit(handleLogin)}>Login</Button>
         </View>

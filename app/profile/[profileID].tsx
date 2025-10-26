@@ -14,9 +14,34 @@ const Profile = () => {
   const [profiles, setProfiles] = useState<any>([]);
   const [clubAccess, setClubAccess] = useState(false);
   const [isOwnProfile, setIsOwnProfile] = useState(false);
+  const [showLoginInfo, setShowLoginInfo] = useState(false);
+  const [loginData, setLoginData] = useState<any>([]);
+  const [isLoading, setIsLoading] = useState(false);
 
   const local = useLocalSearchParams();
   const nav = useNavigation();
+
+  
+const api = axios.create({
+  baseURL: process.env.EXPO_PUBLIC_IP,
+});
+
+// Add token to requests automatically
+api.interceptors.request.use(
+  async (config) => {
+    const token = await AsyncStorage.getItem('userToken');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
+
+
+  
 
   useEffect(() => {
     (async () => {
@@ -79,6 +104,28 @@ const Profile = () => {
       });
     }
   }, [userId, profiles]);
+
+  const handlePress = async (data:any) => {
+    try {
+        //setIsLoading(true);
+        const logres = await api.get(
+          `${process.env.EXPO_PUBLIC_IP}/profile/login/${local.profileID}`
+        );
+        // Set the login data and show the info
+        console.log(logres)
+        setLoginData(logres.data);
+        setShowLoginInfo(true);
+      } catch (error) {
+        console.error("Error :", error);
+        Alert.alert("Error", "Failed to load Profile Data");
+      }
+
+  }
+
+   const hideLoginInfo = () => {
+    setShowLoginInfo(false);
+    setLoginData(null);
+  };
 
   return (
     <View style={styles.background}>
@@ -143,8 +190,30 @@ const Profile = () => {
                 <Text style={styles.infoText}>
                   <Finger /> Paid Date:
                   {new Date(profiles.paid_date).toLocaleDateString()}
-                </Text>
+                </Text>     
               )}
+              {!showLoginInfo && !isLoading && (
+                <Button onPress={handlePress}
+                >Show Login Info
+                </Button>
+               )}
+               {isLoading && <View style={styles.function}> </View>}
+               {showLoginInfo && loginData && (
+                <View style={styles.loginInfoContainer}>
+                  <Text style={styles.loginInfoTitle}>Login Information:</Text>
+                  <Text style={styles.loginInfoText}>
+                    Username: {loginData.website_login}
+                  </Text>
+                  <Text style={styles.loginInfoText}>
+                    Password: {loginData.password}
+                  </Text>
+                  {/* Add more fields as needed based on your API response structure */}
+                  <Button onPress={hideLoginInfo}>
+                    Hide Login Info
+                  </Button>
+                </View>
+              )}
+              
               <View style={styles.function}>
                 <Button
                   onPress={() =>
@@ -166,6 +235,7 @@ const Profile = () => {
                 >
                   Requests
                 </Button>
+                
               </View>
             </View>
           )}
@@ -213,4 +283,22 @@ const styles = StyleSheet.create({
     fontSize: 25,
     fontWeight: "bold",
   },
+    loginInfoContainer: {
+    marginTop: 10,
+    padding: 10,
+    backgroundColor: "#f5f5f5",
+    borderRadius: 5,
+    borderWidth: 1,
+    borderColor: "#ddd",
+  },
+  loginInfoTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    marginBottom: 10,
+  },
+  loginInfoText: {
+    fontSize: 16,
+    marginBottom: 5,
+  },
 });
+
