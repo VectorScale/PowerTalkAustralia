@@ -791,7 +791,7 @@ app.post("/projects/", (req, res) => {
     if (result.length === 0) {
       return res.status(201).json({ message: "Projects not found" });
     }
-    res.json(result);
+    return res.status(200).json(result);
   });
 });
 app.get("/projectss/:id/:level", (req, res) => {

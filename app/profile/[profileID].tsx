@@ -6,6 +6,7 @@ import Button from "@/PTComponents/Button";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useNavigation, useRouter, useLocalSearchParams } from "expo-router";
 import Finger from "@/PTComponents/Finger";
+import { useIsFocused } from "@react-navigation/native";
 
 const Profile = () => {
   const router = useRouter();
@@ -61,7 +62,7 @@ const Profile = () => {
         Alert.alert("Error", "Failed to load Profile Data");
       }
     })();
-  }, []);
+  }, [useIsFocused()]);
 
   useEffect(() => {
     if (!userId && !profiles) return;

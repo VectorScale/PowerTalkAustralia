@@ -35,12 +35,12 @@ const ProjectDetailPage = () => {
           program_level: projectLevel,
           user_id: projectUserID,
         };
-        const { data } = await axios.post(
+        const data = await axios.post(
           `${process.env.EXPO_PUBLIC_IP}/projects/`,
           payload
         );
         if (data.status == 200){
-        setProject(data);}
+        setProject(data.data);}
         else {
           Alert.alert("No Projects", "Please Contact Support");
         }
