@@ -244,7 +244,9 @@ router.post("/member/projects/3", async (req, res) => {
           "INSERT INTO `development_program` (user_id, project_number, project_title, program_level) VALUES (?, ?, ?, ?)";
         insertPromises.push(db.promise().query(query, [user_id, i, projectnames[i], 3]));
       }
-      const results = await Promise.all(insertPromises);
+      
+    } 
+    const results = await Promise.all(insertPromises);
       
       console.log("All lv3 projects inserted successfully");
       res.json({ 
@@ -252,7 +254,6 @@ router.post("/member/projects/3", async (req, res) => {
         totalProjects: projectnames.length,
         totalInserts: insertPromises.length 
       });
-    } 
   } catch(err){
     console.error("Database error:", err);
     return res.status(500).json({ message: "Database Error" });

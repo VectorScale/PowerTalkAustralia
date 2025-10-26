@@ -60,6 +60,10 @@ const MembersProjectPage1 = () => {
     }
   };
 
+const formatVersion = (number: number): string => {
+  return number.toString().replace('3.1', '3a').replace('4.1', '4a');
+};
+
   return (
     <View style={styles.container}>
 
@@ -74,7 +78,7 @@ const MembersProjectPage1 = () => {
                 handleLevelPress(level);
               }}
             >
-              <Text style={styles.buttonText}>Level {level}</Text>
+              <Text style={styles.buttonText}>Level {formatVersion(level)}</Text>
             </TouchableOpacity>
           ))}
         </ScrollView>

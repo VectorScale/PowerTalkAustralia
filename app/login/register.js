@@ -125,7 +125,24 @@ const RegisterForm = () => {
         error.response?.data?.message || "Membership failed"
       );
     }
+
+
     try {
+      const registerResponse = await axios.post(
+        `${process.env.EXPO_PUBLIC_IP}/users/register`,
+        payload
+      );
+    } catch (error) {
+      console.error(
+        "Error submitting form:",
+        error.response ? error.response.data : error.message
+      );
+      Alert.alert(
+        "Error",
+        error.response?.data?.message || "Registration failed"
+      );
+    }
+        try {
       const projectLevels1 = await axios.post(
         `${process.env.EXPO_PUBLIC_IP}/member/projects/1`,
         payload
@@ -162,7 +179,7 @@ const RegisterForm = () => {
         `${process.env.EXPO_PUBLIC_IP}/member/projects/3`,
         payload
       );
-      console.log("Success Level 2 Projects Added")
+      console.log("Success Level 3 Projects Added")
     } catch (error) {
       console.error(
         "Error submitting form:",
@@ -190,7 +207,7 @@ const RegisterForm = () => {
       );
     }
     try { 
-      const projectLevels1 = await axios.post(
+      const projectLevels4 = await axios.post(
         `${process.env.EXPO_PUBLIC_IP}/member/projects/4`,
         payload
       );
@@ -211,22 +228,6 @@ const RegisterForm = () => {
         payload
       );
       console.log("Success Level 4a Projects Added")
-    } catch (error) {
-      console.error(
-        "Error submitting form:",
-        error.response ? error.response.data : error.message
-      );
-      Alert.alert(
-        "Error",
-        error.response?.data?.message || "Project Creation failed"
-      );
-    } 
-
-    try {
-      const registerResponse = await axios.post(
-        `${process.env.EXPO_PUBLIC_IP}/users/register`,
-        payload
-      );
       Alert.alert("Registration Successful", "A Board Member will send your credentials to your provided email address");
       reset(); // clear the form after successful registration
       router.back();
@@ -237,9 +238,9 @@ const RegisterForm = () => {
       );
       Alert.alert(
         "Error",
-        error.response?.data?.message || "Registration failed"
+        error.response?.data?.message || "Project Creation failed"
       );
-    }
+    } 
     
   };
 

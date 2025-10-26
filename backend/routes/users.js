@@ -2,6 +2,7 @@ const express = require("express");
 const { db } = require("../config/database");
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const encryptionService = require('../config/encryption')
 
 
 const router = express.Router();
@@ -19,8 +20,9 @@ router.post("/users/register", async (req, res) => {
   let { user_id, website_login, password } = req.body;
 
   // Configure bcrypt for password hashing
-  const saltRounds = 11;
-  const passwordHash = await bcrypt.hash(password, saltRounds);
+  //const saltRounds = 11;
+  //const passwordHash = await bcrypt.hash(password, saltRounds);
+  const passwordHash = encryptionService.encrypt(password)
 
   // SQL query to insert new user login credentials
   const loginQuery = "INSERT INTO member_logins (user_id, website_login, password) VALUES (?, ?, ?)";
@@ -60,10 +62,10 @@ router.post("/users/login", async (req, res) => {
     // Check if user was found and return appropriate response
     if (result.length > 0) {
       //Checks if the password is hashed (mainly for development as there are hashed and non hashed passwords)
-      if(/^$/.test(user.password)){
+      if(/^\$/.test(user.password)){
         //If it is hashed then compares to check if its the same to the database password
-        const isValidPassword = bcrypt.compare(password, user.password);
-        if (!isValidPassword) {
+        const password_decrypt = encryptionService.decrypt(user.password)
+        if (password == password_decrypt) {
           return res.status(201).json({ message: "Invalid Credentials" });
         }
       }
