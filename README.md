@@ -31,3 +31,15 @@ To learn more about developing your project with Expo, look at the following res
 
 - [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
 - [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+
+## Running Exporting to Web
+If you want to export to the static web app
+Navigate to Actions tab in your repository
+
+Select the "Azure Static Web Apps CI/CD" workflow from the left sidebar
+
+Click "Run workflow" button
+
+Choose the branch and optional parameters
+
+Click "Run workflow" to start execution
