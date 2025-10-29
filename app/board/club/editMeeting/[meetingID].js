@@ -204,7 +204,7 @@ const EditForm = () => {
                 placeholder="Email"
                 value={links === null ? "( insert link )" : links}
 
-                onValueChange={setlinks}
+                onChangeText={setlinks}
               />
 
             </View>
@@ -218,7 +218,7 @@ const EditForm = () => {
               placeholder="Entry Instructions"
               value={instruct}
 
-              onValueChange={setInstruct}
+              onChangeText={setInstruct}
             />
 
           </View>
