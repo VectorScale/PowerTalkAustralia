@@ -17,7 +17,6 @@ import { useRouter } from "expo-router";
 
 import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useKeyboard } from "@react-native-community/hooks";
 
 const EditForm = () => {
   const router = useRouter();
@@ -51,24 +50,22 @@ const EditForm = () => {
   }, []);
 
   useEffect(() => {
-    if (!userId) return;
-    if (userId) {
-      axios.get(`${process.env.EXPO_PUBLIC_IP}/clubAccess/${userId}`)
-        .then(res => {
-          console.log(res.data)
-          const clubList = res.data.club_id;
-          console.log(clubList)
-          setClubs(clubList);
-        })
-        .catch(err => {
-          console.error('Error fetching meeting details:', err);
-          setLoading(false);
-        });
-    }
-  }, [userId]);
+    (async () => {
+      try {
+        const storedClubId = await AsyncStorage.getItem("clubId");
+        if (storedClubId) {
+          setClubs(storedClubId);
+        }
+      } catch (error) {
+        console.error("Error fetching club:", error);
+        Alert.alert("Error", "Failed to load Club");
+      }
+    })();
+  }, []);
 
   const Add = async () => {
     try {
+      console.log(clubs);
       const payload =
       {
           club_id: clubs,
@@ -80,6 +77,7 @@ const EditForm = () => {
           link: links,
           instructions: instruct
         };
+        console.log(payload);
       await axios.post(
         `${process.env.EXPO_PUBLIC_IP}/meeting/add/`, payload        
       );

@@ -69,6 +69,13 @@ export default function Layout() {
           headerShown:true,
         }}
       />
+        <Stack.Screen
+        name="index"
+        options={{
+          title: "Select a Club",
+          headerShown:true,
+        }}
+      />
     </Stack>
   );
 }

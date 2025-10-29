@@ -12,7 +12,7 @@ import Pencil from "@/PTComponents/Pencil";
 import FilterButton from "@/PTComponents/FilterButton";
 import { Picker } from "@react-native-picker/picker";
 
-import { useNavigation } from "@react-navigation/native";
+import { useIsFocused, useNavigation } from "@react-navigation/native";
 import { useRouter } from "expo-router";
 
 import axios from "axios";
@@ -51,7 +51,7 @@ const ProfileScreen = () => {
   }, []);
 
   useEffect(() => {
-    nav.setOptions({ headerShown: true, title: "Club Meetings" });
+    nav.setOptions({ headerShown: true, title: "Upcoming Meetings" });
   });
 
   useEffect(() => {
@@ -116,7 +116,7 @@ const ProfileScreen = () => {
         Alert.alert("Error", "Failed to fetch user or club data");
       }
     })();
-  }, [clubs]);
+  }, [clubs,useIsFocused()]);
 
   useEffect(() => {
     console.log(clubMeetings);

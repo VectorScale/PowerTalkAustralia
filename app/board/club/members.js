@@ -15,6 +15,24 @@ import { useRouter } from "expo-router";
 
 import { useIsFocused } from "@react-navigation/native";
 
+const api = axios.create({
+  baseURL: process.env.EXPO_PUBLIC_IP,
+});
+
+// Add token to requests automatically
+api.interceptors.request.use(
+  async (config) => {
+    const token = await AsyncStorage.getItem('userToken');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
+
 const ClubBoardMemberPage = () => {
   const router = useRouter();
 
@@ -38,30 +56,29 @@ const ClubBoardMemberPage = () => {
   }, []);
 
   useEffect(() => {
-    if (userId == "") return;
     (async () => {
       try {
-        const access = await axios.get(
-          `${process.env.EXPO_PUBLIC_IP}/clubAccess/${userId}`
-        );
-        setClubId(access.data.club_id);
+        const storedClubId = await AsyncStorage.getItem("clubId");
+        if (storedClubId) {
+          setClubId(storedClubId);
+        }
       } catch (error) {
         console.error("Error fetching club:", error);
         Alert.alert("Error", "Failed to load Club");
       }
     })();
-  }, [userId]);
+  }, []);
 
   useEffect(() => {
     if (clubId == "") return;
     (async () => {
       try {
-        console.log(clubId);
-        // Step 1: Get club list from user info
+        // Step 1: Fetch the IDs of Members in a Club
         const clubMembers = await axios.get(
           `${process.env.EXPO_PUBLIC_IP}/clubBoard/${clubId}`
         );
 
+        // Step 2: Fetch the details of each Member
         const MemberDetails = await Promise.all(
           clubMembers.data.map(async (item) => {
             const res = await axios.get(
@@ -129,10 +146,10 @@ const ClubBoardMemberPage = () => {
         user_id,
         paid,
         paid_date,
-        guest,
+        guest
       };
 
-      await axios.post(
+      await api.post(
         `${process.env.EXPO_PUBLIC_IP}/updatePayment/`,
         payload
       );

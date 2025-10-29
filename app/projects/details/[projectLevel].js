@@ -35,11 +35,15 @@ const ProjectDetailPage = () => {
           program_level: projectLevel,
           user_id: projectUserID,
         };
-        const { data } = await axios.post(
+        const data = await axios.post(
           `${process.env.EXPO_PUBLIC_IP}/projects/`,
           payload
         );
-        setProject(data);
+        if (data.status == 200){
+        setProject(data.data);}
+        else {
+          Alert.alert("No Projects", "Please Contact Support");
+        }
       } catch (error) {
         console.error("Error fetching projects:", error);
         Alert.alert("Error", "Failed to load projects");
@@ -58,6 +62,107 @@ const ProjectDetailPage = () => {
     (p, index, self) =>
       index === self.findIndex((q) => q.project_title === p.project_title)
   );
+
+  // Function to render table rows with conditional breaks
+  const renderTableRows = () => {
+    const rows = [];
+    let rowIndex = 0;
+
+    if (projectLevel === 3) {
+      // For level 3: break after 9 rows
+      for (let i = 0; i < uniqueProjects.length; i++) {
+        rows.push(
+          <View key={i} style={styles.tableRow}>
+            <TouchableOpacity
+              onPress={() => { setVisible(true); setSelected(i + 1); setSelectedID(uniqueProjects[i].project_id) }}
+              style={styles.feedbackButton}
+            >
+              <Text style={styles.projectCell}>{i + 1}</Text>
+            </TouchableOpacity>
+            <Text style={styles.tableCell}>{uniqueProjects[i].project_title}</Text>
+            <Text style={styles.tableCell}>
+              {uniqueProjects[i].date_achieved ? (
+                new Date(uniqueProjects[i].date_achieved).toLocaleDateString()
+              ) : (
+                <PTButton onPress={() => handleRequest(uniqueProjects[i].project_id)}>Request</PTButton>
+              )}
+            </Text>
+          </View>
+        );
+
+        // Insert break text after 9 rows
+        if (i === 8) {
+          rows.push(
+            <View key="break-3" style={styles.breakContainer}>
+              <Text style={styles.breakText}>Plus any six of the following speeches</Text>
+            </View>
+          );
+        }
+      }
+    } else if (projectLevel === 4.1) {
+      // For level 4.1: break after 3 rows and then after 5 more rows
+      for (let i = 0; i < uniqueProjects.length; i++) {
+        rows.push(
+          <View key={i} style={styles.tableRow}>
+            <TouchableOpacity
+              onPress={() => { setVisible(true); setSelected(i + 1); setSelectedID(uniqueProjects[i].project_id) }}
+              style={styles.feedbackButton}
+            >
+              <Text style={styles.projectCell}>{i + 1}</Text>
+            </TouchableOpacity>
+            <Text style={styles.tableCell}>{uniqueProjects[i].project_title}</Text>
+            <Text style={styles.tableCell}>
+              {uniqueProjects[i].date_achieved ? (
+                new Date(uniqueProjects[i].date_achieved).toLocaleDateString()
+              ) : (
+                <PTButton onPress={() => handleRequest(uniqueProjects[i].project_id)}>Request</PTButton>
+              )}
+            </Text>
+          </View>
+        );
+
+        // Insert first break text after 3 rows
+        if (i === 2) {
+          rows.push(
+            <View key="break-4.1-first" style={styles.breakContainer}>
+              <Text style={styles.breakText}>Any three of the following Interpretive reading projects may be presented for level 4 - Leading Trainer Project 4 Interpretive Reading</Text>
+            </View>
+          );
+        }
+        
+        // Insert second break text after 8 rows (3 + 5)
+        if (i === 7) {
+          rows.push(
+            <View key="break-4.1-second" style={styles.breakContainer}>
+              <Text style={styles.breakText}>An additional optional assignments for Level Leading Trainer</Text>
+            </View>
+          );
+        }
+      }
+    } else {
+      // For other levels, render normally without breaks
+      return uniqueProjects.map((row, index) => (
+        <View key={index} style={styles.tableRow}>
+          <TouchableOpacity
+            onPress={() => { setVisible(true); setSelected(index + 1); setSelectedID(uniqueProjects[index].project_id) }}
+            style={styles.feedbackButton}
+          >
+            <Text style={styles.projectCell}>{index + 1}</Text>
+          </TouchableOpacity>
+          <Text style={styles.tableCell}>{row.project_title}</Text>
+          <Text style={styles.tableCell}>
+            {row.date_achieved ? (
+              new Date(row.date_achieved).toLocaleDateString()
+            ) : (
+              <PTButton onPress={() => handleRequest(row.project_id)}>Request</PTButton>
+            )}
+          </Text>
+        </View>
+      ));
+    }
+
+    return rows;
+  };
 
   const handleFeedback = async () => {
     let recipient_id = projectUserID;
@@ -99,7 +204,7 @@ const ProjectDetailPage = () => {
     <View style={styles.background}>
       <View style={styles.container}>
         <ScrollView contentContainerStyle={styles.content}>
-          <Text>Click a project number to provide feedback</Text>
+          <Text style={{flex:1,textAlign:"center",margin:5, fontSize:15}}>Click a project number to provide feedback</Text>
           {/* Table Header */}
           <View style={styles.tableRowHeader}>
             <Text style={[styles.projectCell, styles.tableHeaderText]}>#</Text>
@@ -110,25 +215,8 @@ const ProjectDetailPage = () => {
               Date Completed
             </Text>
           </View>
-          {/* Table Rows */}
-          {uniqueProjects.map((row, index) => (
-            <View key={index} style={styles.tableRow}>
-              <TouchableOpacity
-                onPress={() => { setVisible(true); setSelected(index + 1); setSelectedID(uniqueProjects[index].project_id) }}
-                style={styles.feedbackButton}
-              >
-                <Text style={styles.projectCell}>{index + 1}</Text>
-              </TouchableOpacity>
-              <Text style={styles.tableCell}>{row.project_title}</Text>
-              <Text style={styles.tableCell}>
-                {row.date_achieved ? (
-                  new Date(row.date_achieved).toLocaleDateString()
-                ) : (
-                  <PTButton onPress={() => handleRequest(row.project_id)}>Request</PTButton>
-                )}
-              </Text>
-            </View>
-          ))}
+          {/* Table Rows with conditional breaks */}
+          {renderTableRows()}
         </ScrollView>
 
         <Modal
@@ -259,5 +347,22 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     borderColor: "#8A7D6A",
     borderWidth: 2,
+  },
+  // New styles for break containers
+  breakContainer: {
+    paddingVertical: 15,
+    paddingHorizontal: 10,
+    backgroundColor: "#f8f8f8",
+    borderLeftWidth: 3,
+    borderLeftColor: "#8A7D6A",
+    marginVertical: 10,
+    borderRadius: 5,
+  },
+  breakText: {
+    fontSize: 14,
+    fontWeight: "500",
+    color: "#333",
+    textAlign: "center",
+    fontStyle: "italic",
   },
 });

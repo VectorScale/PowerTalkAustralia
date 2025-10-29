@@ -24,7 +24,6 @@ const MembersProjectPage1 = () => {
 
   const local = useLocalSearchParams();
   const projectUserID = local.projectUserID;
-  const projectLevel = local.projectLevel
 
   useEffect(() => {
     (async () => {
@@ -49,7 +48,7 @@ const MembersProjectPage1 = () => {
 
   useEffect(() => {
     nav.setOptions({ headerShown: true });
-  }, [projectLevel]);
+  }, []);
 
 
   const handleLevelPress = async (level: number) => {
@@ -60,13 +59,17 @@ const MembersProjectPage1 = () => {
     }
   };
 
+const formatVersion = (number: number): string => {
+  return number.toString().replace('3.1', '3a').replace('4.1', '4a');
+};
+
   return (
     <View style={styles.container}>
 
       {userId != "" && (
         <ScrollView contentContainerStyle={styles.content}>
           {/* Level Buttons */}
-          {[1, 2, 3, 4].map((level) => (
+          {[1, 2, 3, 3.1, 4, 4.1].map((level) => (
             <TouchableOpacity
               key={level}
               style={styles.levelButton}
@@ -74,7 +77,7 @@ const MembersProjectPage1 = () => {
                 handleLevelPress(level);
               }}
             >
-              <Text style={styles.buttonText}>Level {level}</Text>
+              <Text style={styles.buttonText}>Level {formatVersion(level)}</Text>
             </TouchableOpacity>
           ))}
         </ScrollView>

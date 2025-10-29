@@ -8,6 +8,7 @@ import {
   StyleSheet,
   ScrollView,
   Alert,
+  ActivityIndicator,
 } from "react-native";
 import { Picker } from "@react-native-picker/picker";
 import { useNavigation } from "@react-navigation/native";
@@ -24,6 +25,7 @@ const ClubMembersPage = () => {
   const nav = useNavigation();
 
   const [memberDetails, setDetails] = useState<any>([]);
+  const [sortedDetails, setSortedDetails] = useState<any>([]);
   const [clubs, setClubs] = useState<any>([]);
   const [clubIds, setClubIds] = useState<any>([]);
   const [ids, setIds] = useState<any>([]);
@@ -37,6 +39,8 @@ const ClubMembersPage = () => {
 
   const [level, setLevel] = useState(0);
   const levelsReadable = ["Members", "Board", "Council", "Association"];
+
+  const [loaded, setLoaded] = useState(false);
 
 
   useEffect(() => {
@@ -59,7 +63,7 @@ const ClubMembersPage = () => {
       try {
         setSelectedClub("All Clubs");
         setSelectedClubId(0);
-        setSortBy("A-Z");
+        setSortBy("None");
         if (level == 0) {
           const res = await axios.get(`${process.env.EXPO_PUBLIC_IP}/users`);
           setIds(res.data);
@@ -97,11 +101,21 @@ const ClubMembersPage = () => {
 
   useEffect(() => {
     if (!selectedClubId) { setSorted(ids); return; }
+    setLoaded(false);
     (async () => {
       try {
         await axios
           .get(`${process.env.EXPO_PUBLIC_IP}/clubBoard/${selectedClubId}`)
-          .then((res) => setClubIds(res.data));
+          .then((res) => {
+            if (res.status == 200) {
+              setClubIds(res.data);
+            }
+            else {
+              setDetails([]);
+              setSortedDetails([]);
+              setLoaded(true);
+            }
+          });
       } catch (error) {
         console.error("Error fetching member details:", error);
         Alert.alert("Error", "Failed to fetch Club Sorting");
@@ -114,7 +128,7 @@ const ClubMembersPage = () => {
       setSorted(
         ids.filter((item: any) => {
           let allow = false;
-            if (item.club_id == selectedClubId) allow = true;
+          if (item.club_id == selectedClubId) allow = true;
           return allow;
         })
       );
@@ -133,6 +147,7 @@ const ClubMembersPage = () => {
   }, [clubIds]);
 
   useEffect(() => {
+    if(sortedIds.length==0) return;
     (async () => {
       try {
         const MemberDetails = await Promise.all(
@@ -149,6 +164,7 @@ const ClubMembersPage = () => {
             const id = res.data[0].user_id;
             const guest = res.data[0].guest;
             const PaidAmount = res.data[0].paid;
+            const joinDate = res.data[0].join_date;
             return {
               firstName,
               lastName,
@@ -156,6 +172,7 @@ const ClubMembersPage = () => {
               guest,
               PaidAmount,
               position,
+              joinDate
             };
           })
         );
@@ -164,8 +181,7 @@ const ClubMembersPage = () => {
           setObj.add(member);
         });
         setDetails(Array.from(setObj));
-        setSortBy("Z-A");
-        setSortBy("A-Z");
+        setLoaded(true);
       } catch (error) {
         console.error("Error fetching member details:", error);
         Alert.alert("Error", "Failed to fetch Member Details");
@@ -174,33 +190,38 @@ const ClubMembersPage = () => {
   }, [sortedIds]);
 
   useEffect(() => {
+    if (loaded)
     nav.setOptions({ title: `${levelsReadable[level]} (${memberDetails.length})` });
-  }, [memberDetails]);
+  }, [memberDetails, loaded]);
 
 
   useEffect(() => {
-    if (sortBy == "None") return;
+  if (sortBy == "None" || memberDetails.length == 0) {setSortedDetails([]); return;}
     const sortedMembers = memberDetails.sort((a: any, b: any) => {
-      console.log(a);
-      console.log(b);
       if (sortBy == "Z-A") {
-        const firstCompare = a.firstName.localeCompare(b.firstName);
+        const firstCompare = a.lastName.localeCompare(b.lastName);
         if (firstCompare !== 0) {
           return firstCompare;
         } else {
-          return a.lastName.localeCompare(b.lastName);
+          return a.firstName.localeCompare(b.firstName);
         }
       } else if (sortBy == "A-Z") {
-        const firstCompare = b.firstName.localeCompare(a.firstName);
+        const firstCompare = b.lastName.localeCompare(a.lastName);
         if (firstCompare !== 0) {
           return firstCompare;
         } else {
-          return b.lastName.localeCompare(a.lastName);
+          return b.firstName.localeCompare(a.firstName);
         }
+      } else if (sortBy == "New") {
+        return a.joinDate.localeCompare(b.joinDate);
+      } else if (sortBy == "Old") {
+        return b.joinDate.localeCompare(a.joinDate);
       }
     });
-    setDetails(sortedMembers);
-  }, [sortBy]);
+    setSortedDetails(sortedMembers);
+    console.log("Loaded2");
+    setLoaded(true);
+  }, [sortBy, memberDetails]);
 
   return (
     <View style={styles.container}>
@@ -213,7 +234,6 @@ const ClubMembersPage = () => {
           onPressAssoc={() => setLevel(3)}
           level={level}
         />
-        <Text>{sortBy}</Text>
         <FilterButton onFilter={() => setFilter(!filterShow)} />
         {filterShow && (<View>
           <Picker
@@ -249,17 +269,18 @@ const ClubMembersPage = () => {
             style={styles.picker}
             onValueChange={(itemValue) => setSortBy(itemValue)}
           >
+            <Picker.Item label="Sort By" value="None" />
             <Picker.Item label="Last Name A-Z" value="A-Z" />
             <Picker.Item label="Last Name Z-A" value="Z-A" />
-            <Picker.Item label="Join Date Newest" value="None" />
-            <Picker.Item label="Join Date Oldest" value="None" />
+            <Picker.Item label="Join Date Newest" value="New" />
+            <Picker.Item label="Join Date Oldest" value="Old" />
           </Picker>
         </View>)}
 
-        {memberDetails.map((member: any, index: any) => (
-          <View style={styles.memberBlock}>
+        {loaded ? (memberDetails.length > 0 ? (sortedDetails.length > 0 ? sortedDetails : memberDetails).map((member: any, index: any) => (
+          <View
+            key={index} style={styles.memberBlock}>
             <TouchableOpacity
-              key={index}
               style={styles.memberInfo}
               onPress={() =>
                 router.navigate({
@@ -282,7 +303,8 @@ const ClubMembersPage = () => {
                 </Text>)}
             </View>
           </View>
-        ))}
+        )) : <Text style={{ flex: 1, textAlign: "center", margin: 20, fontSize: 20, fontWeight: "bold" }}>No Members Match Given Filters</Text>) :
+          <ActivityIndicator size="large" color="#065395" />}
       </ScrollView>
       <BottomNav
         number={3}

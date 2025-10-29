@@ -1,9 +1,18 @@
 import { useEffect, useState } from "react";
 
-import { View, Text, StyleSheet, ActivityIndicator, Alert } from "react-native";
+import {
+  View,
+  Text,
+  TextInput,
+  StyleSheet,
+  ActivityIndicator,
+  Alert,
+} from "react-native";
 import Finger from "@/PTComponents/Finger";
+import Button from "@/PTComponents/Button"
 
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import Clipboard from '@react-native-clipboard/clipboard';
 
 import axios from "axios";
 import { useNavigation } from "expo-router";
@@ -21,7 +30,6 @@ const MeetingDetails = () => {
       try {
         const storedUserId = await AsyncStorage.getItem("userId");
         if (storedUserId) {
-          console.log(storedUserId);
           setUserId(storedUserId);
         }
       } catch (error) {
@@ -52,7 +60,7 @@ const MeetingDetails = () => {
         Alert.alert("Error", "Failed to load user ID");
       }
     })();
-  }, [userId]);
+  }, [local.meetingID]);
 
   useEffect(() => {
     nav.setOptions({ headerShown: true });
@@ -75,14 +83,34 @@ const MeetingDetails = () => {
           <Finger /> {meeting[0].meeting_name} #{meeting[0].meeting_id}
         </Text>
         <Text style={styles.value}>
-          <Finger /> {meeting[0].meeting_date}
+          <Finger />{" "}
+          {new Intl.DateTimeFormat("en-GB", {
+            dateStyle: "full",
+            timeZone: "Australia/Sydney",
+          }).format(new Date(meeting[0].meeting_date))}
+        </Text>
+        <Text style={styles.value}>
+          <Finger /> Meeting Time: {meeting[0].meeting_time?meeting[0].meeting_time.slice(0, 5):"Not Set"}
+          {meeting[0].arrival_time && "(Arrive at " + meeting[0].arrival_time + ")"}
         </Text>
         <Text style={styles.value}>
           <Finger /> {meeting[0].meeting_place}
         </Text>
-        <Text style={styles.value}>
-          <Finger /> {meeting[0].meeting_time}
-        </Text>
+        {meeting[0].entry_instructions && (
+          <Text style={styles.value}>
+            <Finger /> {meeting[0].entry_instructions}
+          </Text>
+        )}
+        {meeting[0].agenda_file_link && (
+          <View>
+            <Text>
+              <Finger /> Program Link: {meeting[0].agenda_file_link}
+            </Text>
+            <View>
+              <Button onPress={()=>Clipboard.setString(meeting[0].agenda_file_link)}>Copy Link</Button>
+            </View>
+          </View>
+        )}
       </View>
     </View>
   );
