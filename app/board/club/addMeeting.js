@@ -154,7 +154,7 @@ const EditForm = () => {
             style={styles.inputGroup}>
             <FormInput
               placeholder="Link"
-              onValueChange={setlinks}
+              onChangeText={setlinks}
             />
           </View>
         </View>
@@ -163,7 +163,7 @@ const EditForm = () => {
           style={styles.inputGroup}>
           <FormInput
             placeholder="Entry Instructions"
-            onValueChange={setInstruct}
+            onChangeText={setInstruct}
           />
         </View>
         <View style={styles.buttons}>
