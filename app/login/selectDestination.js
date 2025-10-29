@@ -65,18 +65,18 @@ const LoginForm = () => {
             </Button>
           )}
           {accessLevel >= 1 && (
-            <Button onPress={() => router.replace("/board/club/")}>
+            <Button onPress={() => router.push("/board/club/")}>
               Club
             </Button>
           )}
           {accessLevel >= 2 && (
-            <Button onPress={() => router.replace("/board/council/")}>
+            <Button onPress={() => router.push("/board/council/")}>
               Council
             </Button>
           )}
           {accessLevel >= 3 && (
             <Button
-              onPress={() => router.replace("/board/association/members/")}
+              onPress={() => router.push("/board/association/members/")}
             >
               Association
             </Button>
